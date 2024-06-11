@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -44,17 +49,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.R
+import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.Primary
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
+import com.example.android_younotes_app.presentation.utils.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesScreen(
+    navController: NavController,
     viewModel: NotesViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
@@ -69,7 +79,9 @@ fun NotesScreen(
         floatingActionButton = {
             GradientFloatingActionButton(
                 brush = ThemeGradient,
-                onClick = { /*TODO*/ },
+                onClick = {
+                      navController.navigate(Screen.AddNoteScreen.route)
+                },
                 icon = Icons.Default.Add,
                 modifier = Modifier
                     .offset(x = (-32).dp, y = (-32).dp)
@@ -158,15 +170,19 @@ fun NotesScreen(
                 }
             }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
-                items(state.notes) { note ->
-                    NoteItem(
+                SectionTitle(title = "Pinned")
+                //NotesGrid(notes = state.notes.filter { note -> note.isPinned })
+                Spacer(modifier = Modifier.height(32.dp))
 
-                    )
-                }
+                SectionTitle(title = "All notes")
+                //NotesGrid(notes = state.notes.filter { note -> !note.isPinned!! == true })
             }
+
             if (state.notes.isNotEmpty()) return@Scaffold
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -212,4 +228,42 @@ fun NotesScreen(
             }
         }
     }
+}
+
+@Composable
+fun NotesGrid(notes: List<Note>) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(notes) { note ->
+            NoteItem(
+                onClick = {
+
+                },
+                note = note
+            )
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = TextStyle(
+            fontFamily = medium,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp,
+            lineHeight = 24.sp,
+            letterSpacing = 0.5.sp,
+            color = Color.White.copy(0.8f)
+        ),
+        color = Color.White,
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .padding(start = 32.dp)
+    )
 }

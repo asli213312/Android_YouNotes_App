@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes.presentation.ui.theme.light
@@ -48,6 +49,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AddNoteScreen(
+    navController: NavController,
     context: Context,
     viewModel: AddNoteViewModel = hiltViewModel()
 ) {
@@ -61,8 +63,11 @@ fun AddNoteScreen(
             when(event) {
                 UiEvent.SaveNote -> {
                     Toast.makeText(context, "Note saved!", Toast.LENGTH_SHORT).show()
+                    navController.navigateUp()
                 }
-                is UiEvent.ShowSnackbar -> TODO()
+                is UiEvent.ShowSnackbar -> {
+                    Toast.makeText(context, "Something got wrong... try later", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -94,7 +99,7 @@ fun AddNoteScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = { navController.navigateUp() }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,

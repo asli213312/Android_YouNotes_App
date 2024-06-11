@@ -1,5 +1,6 @@
 package com.example.android_younotes_app.presentation.ui.theme
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
@@ -20,7 +21,9 @@ val ThemeGradient = Brush.linearGradient(
 
 val BlackGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xFF222222),
-        Color(0xFF1E1E1E)
-    )
+        Color(0xFF2E2E2E),
+        Color(0xFF131313),
+    ),
+    start = Offset(0f, 0f),
+    end = Offset(0f, Float.POSITIVE_INFINITY)
 )

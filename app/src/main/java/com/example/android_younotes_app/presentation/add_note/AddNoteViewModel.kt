@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_younotes_app.domain.models.InvalidNoteException
 import com.example.android_younotes_app.domain.models.Note
-import com.example.android_younotes_app.domain.models.NoteCategory
 import com.example.android_younotes_app.domain.use_cases.NoteUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,17 +20,13 @@ class AddNoteViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _titleState = mutableStateOf(
-        NoteTextFieldState(
-        hint = "Enter title..."
-    )
+        NoteTextFieldState(hint = "Enter title...")
     )
 
     val titleState: State<NoteTextFieldState> = _titleState
 
     private val _contentState = mutableStateOf(
-        NoteTextFieldState(
-        hint = "Enter some content..."
-    )
+        NoteTextFieldState(hint = "Enter some content...")
     )
 
     val contentState: State<NoteTextFieldState> = _contentState
@@ -40,14 +35,13 @@ class AddNoteViewModel @Inject constructor(
 
     val lastChanged: Long = _lastChanged.longValue
 
-    private val _category = mutableStateOf(NoteCategory.DEFAULT)
 
-    val category: State<NoteCategory> = _category
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    private val currentNoteId: Int? = null
+    private var _noteIsBookmarked: Boolean = false
+    private var _currentNoteId: Int? = null
 
     fun onEvent(event: AddNoteEvent) {
         when(event) {
@@ -75,7 +69,7 @@ class AddNoteViewModel @Inject constructor(
             }
             is AddNoteEvent.BookmarkNote -> {
                 viewModelScope.launch {
-                    noteUseCases.bookmarkNote(currentNoteId)
+                    noteUseCases.bookmarkNote(_currentNoteId)
                 }
             }
             AddNoteEvent.SaveNote -> {
@@ -87,8 +81,8 @@ class AddNoteViewModel @Inject constructor(
                                 content = _contentState.value.text,
                                 lastChanged = _lastChanged.longValue,
                                 timeCreated = System.currentTimeMillis(),
-                                category = NoteCategory.DEFAULT,
-                                id = currentNoteId
+                                isPinned = _noteIsBookmarked.toString(),
+                                id = _currentNoteId
                             )
                         )
                         _eventFlow.emit(UiEvent.SaveNote)

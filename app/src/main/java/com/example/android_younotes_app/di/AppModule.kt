@@ -2,6 +2,7 @@ package com.example.android_younotes_app.di
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.migration.Migration
 import com.example.android_younotes_app.data.data_source.NoteDatabase
 import com.example.android_younotes_app.data.repository.NoteRepositoryImpl
 import com.example.android_younotes_app.domain.repository.NoteRepository
@@ -26,7 +27,8 @@ object AppModule {
             app,
             NoteDatabase::class.java,
             NoteDatabase.DATABASE_NAME,
-        ).build()
+        )
+        .build()
     }
 
     @Provides

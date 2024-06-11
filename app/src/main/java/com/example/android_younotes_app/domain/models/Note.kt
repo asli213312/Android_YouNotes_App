@@ -9,7 +9,8 @@ data class Note(
     val content: String,
     val lastChanged: Long,
     val timeCreated: Long,
-    val category: NoteCategory,
+    val isPinned: String? = null,
+    val tag: String? = null,
     @PrimaryKey
     val id: Int? = null
 )

@@ -19,6 +19,9 @@ interface NoteDao {
     @Query("SELECT * FROM note WHERE id = :id")
     suspend fun getNoteById(id: Int): Note?
 
+    @Query("UPDATE note SET isPinned = :isPinned WHERE id = :id")
+    suspend fun updateNoteIsPinned(id: Int, isPinned: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: Note)
 
