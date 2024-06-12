@@ -9,8 +9,10 @@ data class Note(
     val content: String,
     val lastChanged: Long,
     val timeCreated: Long,
-    val isPinned: String? = null,
+    val isPinned: Boolean? = null,
     val tag: String? = null,
+    val backgroundImagePath: String? = null,
+    val previewImagePath: String? = null,
     @PrimaryKey
     val id: Int? = null
 )

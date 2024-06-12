@@ -7,7 +7,7 @@ class BookmarkNote(
     private val noteRepository: NoteRepository
 ) {
 
-    suspend operator fun invoke(noteId: Int?) {
-
+    suspend operator fun invoke(noteId: Int, state: Boolean) {
+        noteRepository.bookmarkNote(noteId, state)
     }
 }

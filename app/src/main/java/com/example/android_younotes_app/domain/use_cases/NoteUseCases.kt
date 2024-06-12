@@ -6,5 +6,6 @@ import com.example.android_younotes_app.domain.use_cases.BookmarkNote
 data class NoteUseCases(
     val addNote: AddNote,
     val bookmarkNote: BookmarkNote,
-    val getNotes: GetNotes
+    val getNotes: GetNotes,
+    val getNoteById: GetNoteById
 )

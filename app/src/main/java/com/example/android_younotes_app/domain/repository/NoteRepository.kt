@@ -12,6 +12,8 @@ interface NoteRepository {
 
     suspend fun changeCategoryNoteById(id: Int, category: NoteCategory)
 
+    suspend fun bookmarkNote(id: Int, state: Boolean)
+
     suspend fun insertNote(note: Note)
 
     suspend fun deleteNote(note: Note)

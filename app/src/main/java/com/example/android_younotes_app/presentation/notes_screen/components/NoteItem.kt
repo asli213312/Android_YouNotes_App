@@ -1,9 +1,14 @@
 package com.example.android_younotes_app.presentation.notes_screen.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -24,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -38,9 +44,8 @@ import com.example.android_younotes_app.presentation.ui.theme.BlackGradient
 @Composable
 fun NoteItem(
     note: Note,
-    onClick: (Note) -> Unit
+    onClick: (Note) -> Unit,
 ) {
-
     Card(
         modifier = Modifier
             .background(
@@ -80,7 +85,11 @@ fun NoteItem(
                 )
                 Spacer(modifier = Modifier.weight(1f))
 
-                if (note.isPinned != null) {
+                AnimatedVisibility(
+                    visible = note.isPinned ?: false,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     IconButton(
                         onClick = { onClick(note) },
                         modifier = Modifier.size(16.dp)
@@ -88,8 +97,7 @@ fun NoteItem(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.vector_fill_pin),
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(16.dp),
+                            modifier = Modifier.size(16.dp),
                             tint = Color.White
                         )
                     }

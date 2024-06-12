@@ -176,11 +176,11 @@ fun NotesScreen(
                     .padding(16.dp)
             ) {
                 SectionTitle(title = "Pinned")
-                //NotesGrid(notes = state.notes.filter { note -> note.isPinned })
+                NotesGrid(notes = state.notes.filter { note -> note.isPinned == true })
                 Spacer(modifier = Modifier.height(32.dp))
 
                 SectionTitle(title = "All notes")
-                //NotesGrid(notes = state.notes.filter { note -> !note.isPinned!! == true })
+                NotesGrid(notes = state.notes.filter { note -> note.isPinned == false })
             }
 
             if (state.notes.isNotEmpty()) return@Scaffold

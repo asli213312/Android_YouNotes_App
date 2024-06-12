@@ -8,6 +8,7 @@ import com.example.android_younotes_app.data.repository.NoteRepositoryImpl
 import com.example.android_younotes_app.domain.repository.NoteRepository
 import com.example.android_younotes_app.domain.use_cases.AddNote
 import com.example.android_younotes_app.domain.use_cases.BookmarkNote
+import com.example.android_younotes_app.domain.use_cases.GetNoteById
 import com.example.android_younotes_app.domain.use_cases.GetNotes
 import com.example.android_younotes_app.domain.use_cases.NoteUseCases
 import dagger.Module
@@ -43,7 +44,8 @@ object AppModule {
         return NoteUseCases(
             addNote = AddNote(repository),
             bookmarkNote = BookmarkNote(repository),
-            getNotes = GetNotes(repository)
+            getNotes = GetNotes(repository),
+            getNoteById = GetNoteById(repository)
         )
     }
 }

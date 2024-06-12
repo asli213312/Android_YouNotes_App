@@ -22,6 +22,10 @@ class NoteRepositoryImpl(
 
     }
 
+    override suspend fun bookmarkNote(id: Int, state: Boolean) {
+        noteDao.bookmarkNote(id, state)
+    }
+
     override suspend fun insertNote(note: Note) {
         noteDao.insertNote(note)
     }

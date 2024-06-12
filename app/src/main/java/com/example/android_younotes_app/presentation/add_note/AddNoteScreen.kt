@@ -109,6 +109,7 @@ fun AddNoteScreen(
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
+
                     IconButton(
                         onClick = {
                             viewModel.onEvent(AddNoteEvent.BookmarkNote)
@@ -122,6 +123,7 @@ fun AddNoteScreen(
                             tint = Color.White
                         )
                     }
+
                     Spacer(modifier = Modifier.width(16.dp))
                     Row(
                         Modifier
