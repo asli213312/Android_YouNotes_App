@@ -27,7 +27,10 @@ class MainActivity : ComponentActivity() {
                     startDestination = Screen.NotesScreen.route
                 ) {
                     composable(Screen.NotesScreen.route) {
-                        NotesScreen(navController)
+                        NotesScreen(
+                            this@MainActivity,
+                            navController
+                        )
                     }
                     composable(Screen.AddNoteScreen.route) {
                         AddNoteScreen(

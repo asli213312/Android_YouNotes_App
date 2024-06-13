@@ -3,6 +3,7 @@ package com.example.android_younotes_app.presentation.ui.theme
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -26,4 +27,31 @@ val BlackGradient = Brush.linearGradient(
     ),
     start = Offset(0f, 0f),
     end = Offset(0f, Float.POSITIVE_INFINITY)
+)
+
+val RedGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0xB3CA4E52),
+        Color(0xB36A2146)
+    ),
+    start = Offset.Zero,
+    end = Offset.Infinite,
+    tileMode = TileMode.Mirror
+)
+
+val GreenGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0xB34ECA54),
+        Color(0xB3418835)
+    ),
+    start = Offset.Zero,
+    end = Offset.Infinite,
+    tileMode = TileMode.Mirror
+)
+
+val ClearGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0x002E2E2E),
+        Color(0x00131313),
+    ),
 )

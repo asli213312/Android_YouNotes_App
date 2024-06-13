@@ -1,18 +1,18 @@
 package com.example.android_younotes_app.presentation.add_note
 
-import android.graphics.Bitmap
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_younotes_app.domain.models.InvalidNoteException
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.use_cases.NoteUseCases
+import com.example.android_younotes_app.domain.utils.ImagesUtils
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,48 +25,55 @@ class AddNoteViewModel @Inject constructor(
     private val _titleState = mutableStateOf(
         NoteTextFieldState(hint = "Enter title...")
     )
-
     val titleState: State<NoteTextFieldState> = _titleState
 
     private val _contentState = mutableStateOf(
         NoteTextFieldState(hint = "Enter some content...")
     )
-
     val contentState: State<NoteTextFieldState> = _contentState
 
-    private val _lastChanged = mutableLongStateOf(0)
-    val lastChanged: Long = _lastChanged.longValue
+    private val _additionalState = mutableStateOf(AddNoteAdditionalState())
+    val additionalState: State<AddNoteAdditionalState> = _additionalState
 
-    private val _timeCreated = mutableLongStateOf(0)
-    val timeCreated: Long = _timeCreated.longValue
-
-    private val _backgroundImagePath = MutableStateFlow<String?>(null)
-    val backgroundImagePath: StateFlow<String?> = _backgroundImagePath
-
-    private val _previewImagePath = MutableStateFlow<String?>(null)
-    val previewImagePath: StateFlow<String?> = _previewImagePath
-
-    private val _noteExists = mutableStateOf(false)
-    val noteExists: State<Boolean> = _noteExists
+    private var noteExists: Boolean = false
+    private var _noteIsBookmarked: Boolean? = false
+    private var _currentNoteId: Int? = null
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
-
-    private var _noteIsBookmarked: Boolean? = false
-    private var _currentNoteId: Int? = null
 
     init {
         viewModelScope.launch {
             _currentNoteId?.let { noteId ->
                 val note = noteUseCases.getNoteById(noteId)
-                _noteExists.value = note != null
+                noteExists = note != null
                 if (note != null) {
                     _titleState.value = _titleState.value.copy(text = note.title)
                     _contentState.value = _contentState.value.copy(text = note.content)
-                    _lastChanged.longValue = note.lastChanged
-                    _timeCreated.longValue = note.timeCreated
+                    _additionalState.value = additionalState.value.copy(lastChanged = note.lastChanged)
+                    _additionalState.value = additionalState.value.copy(timeCreated = note.timeCreated)
                     _noteIsBookmarked = note.isPinned
                 }
+            }
+        }
+    }
+
+    fun setBackgroundImageUri(uri: Uri, context: Context) {
+        viewModelScope.launch {
+            _additionalState.value = additionalState.value.copy(
+                    backgroundImagePath = uri.toString()
+                )
+            ImagesUtils.saveImageToFile(uri, context)
+        }
+    }
+
+    fun onContextOption(option: ContextMenuAddNote) {
+        when(option) {
+            is ContextMenuAddNote.Delete -> {
+
+            }
+            is ContextMenuAddNote.SelectColor -> {
+
             }
         }
     }
@@ -87,36 +94,51 @@ class AddNoteViewModel @Inject constructor(
                 _contentState.value = contentState.value.copy(
                     text = event.value
                 )
-                _lastChanged.longValue = System.currentTimeMillis()
+                _additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
             is AddNoteEvent.EnteredTitle -> {
                 _titleState.value = titleState.value.copy(
                     text = event.value
                 )
-                _lastChanged.longValue = System.currentTimeMillis()
+                _additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
             is AddNoteEvent.BookmarkNote -> {
                 viewModelScope.launch {
-                    if (_currentNoteId == null) {
-                        _noteIsBookmarked = true
-                    } else if (_noteIsBookmarked == false) {
-                        noteUseCases.bookmarkNote(_currentNoteId!!, true)
+                    if (_noteIsBookmarked == false) {
+                        _currentNoteId?.let {
+                            noteUseCases.bookmarkNote(_currentNoteId!!, true)
+                        }
+
+                        if (_currentNoteId == null)
+                            _noteIsBookmarked = true;
+
+                        _eventFlow.emit(UiEvent.BookmarkNote)
                     }
                     else {
-                        noteUseCases.bookmarkNote(_currentNoteId!!, false)
+                        _currentNoteId?.let {
+                            noteUseCases.bookmarkNote(_currentNoteId!!, false)
+                        }
+
+                        if (_currentNoteId == null)
+                            _noteIsBookmarked = false
                     }
                 }
             }
-            AddNoteEvent.SaveNote -> {
+            is AddNoteEvent.SaveNote -> {
                 viewModelScope.launch {
                     try {
                         noteUseCases.addNote(
                             Note(
                                 title = _titleState.value.text,
                                 content = _contentState.value.text,
-                                lastChanged = _lastChanged.longValue,
+                                lastChanged = System.currentTimeMillis(),
                                 timeCreated = System.currentTimeMillis(),
                                 isPinned = _noteIsBookmarked,
+                                tag = _additionalState.value.noteTag,
+                                backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
+                                    Uri.parse(_additionalState.value.backgroundImagePath)
+                                },
+                                backgroundGradient = additionalState.value.backgroundGradient?.index,
                                 id = _currentNoteId
                             )
                         )
@@ -130,11 +152,19 @@ class AddNoteViewModel @Inject constructor(
                     }
                 }
             }
+
+            is AddNoteEvent.AddBackground -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.OpenGallery)
+                }
+            }
         }
     }
 }
 
 sealed class UiEvent {
+    data object OpenGallery : UiEvent()
     data object SaveNote : UiEvent()
+    data object BookmarkNote : UiEvent()
     data class ShowSnackbar(val message: String) : UiEvent()
 }

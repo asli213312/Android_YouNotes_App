@@ -93,9 +93,8 @@ dependencies {
     // Kotlin Extensions and Coroutines support for Room
     implementation ("androidx.room:room-ktx:2.6.1")
 
-    // Glide for powerful interactions with images
-    implementation("com.github.bumptech.glide:glide:4.15.1")
-    kapt("com.github.bumptech.glide:compiler:4.15.1")
+    // Coil for powerful interactions with images
+    implementation("io.coil-kt:coil:2.1.0")
 }
 
 kapt {

@@ -1,5 +1,10 @@
 package com.example.android_younotes_app.presentation.notes_screen
 
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,12 +40,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -48,11 +55,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
+import com.example.android_younotes_app.domain.utils.CheckPermissions
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
 import com.example.android_younotes_app.presentation.ui.theme.Background
@@ -60,10 +69,12 @@ import com.example.android_younotes_app.presentation.ui.theme.Primary
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
 import com.example.android_younotes_app.presentation.utils.Screen
+import java.util.jar.Manifest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesScreen(
+    activity: Activity,
     navController: NavController,
     viewModel: NotesViewModel = hiltViewModel()
 ) {
@@ -73,6 +84,31 @@ fun NotesScreen(
 
     val searchText = remember {
         mutableStateOf(TextFieldValue("Search your note..."))
+    }
+
+    val canLoadMedia = remember {
+        mutableStateOf(false)
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        canLoadMedia.value = isGranted
+    }
+
+    if (CheckPermissions.hasPermission(
+            100,
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            LocalContext.current,
+            activity = activity
+        )
+    ) {
+        canLoadMedia.value = true
+        Log.d("NotesScreen", "Permission access: ${canLoadMedia.value}")
+    } else {
+        SideEffect {
+            permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
     }
 
     Scaffold(
@@ -175,15 +211,22 @@ fun NotesScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
+                if (!canLoadMedia.value) return@Column
                 SectionTitle(title = "Pinned")
-                NotesGrid(notes = state.notes.filter { note -> note.isPinned == true })
+                NotesGrid(
+                    notes = state.notes.filter { note -> note.isPinned == true },
+                    canLoadMedia = canLoadMedia.value
+                )
                 Spacer(modifier = Modifier.height(32.dp))
 
                 SectionTitle(title = "All notes")
-                NotesGrid(notes = state.notes.filter { note -> note.isPinned == false })
+                NotesGrid(
+                    notes = state.notes.filter { note -> note.isPinned == false },
+                    canLoadMedia = canLoadMedia.value
+                )
             }
 
-            if (state.notes.isNotEmpty()) return@Scaffold
+            if (state.notes.isEmpty()) return@Scaffold
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
@@ -231,7 +274,7 @@ fun NotesScreen(
 }
 
 @Composable
-fun NotesGrid(notes: List<Note>) {
+fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
@@ -240,6 +283,8 @@ fun NotesGrid(notes: List<Note>) {
     ) {
         items(notes) { note ->
             NoteItem(
+                hasPermissions = canLoadMedia,
+                context = LocalContext.current,
                 onClick = {
 
                 },

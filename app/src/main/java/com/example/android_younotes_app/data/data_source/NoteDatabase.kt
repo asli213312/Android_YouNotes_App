@@ -2,14 +2,17 @@ package com.example.android_younotes_app.data.data_source
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.android_younotes_app.data.utils.DatabaseConverters
 import com.example.android_younotes_app.domain.models.Note
 
 @Database(
     entities = [Note::class],
     version = 1
 )
+@TypeConverters(DatabaseConverters::class)
 abstract class NoteDatabase() : RoomDatabase() {
 
     abstract val dao: NoteDao
