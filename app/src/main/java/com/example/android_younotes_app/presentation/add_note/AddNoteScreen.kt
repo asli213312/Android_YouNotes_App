@@ -123,7 +123,7 @@ fun AddNoteScreen(
         mutableStateOf(false)
     }
 
-    val isBackAlertExpanded = remember {
+    val isNotSavedAlertExpanded = remember {
         mutableStateOf(false)
     }
 
@@ -237,8 +237,12 @@ fun AddNoteScreen(
                                 && viewModel.titleState.value.text.isEmpty()
                             )
                                 navController.navigateUp()
+                            else if (viewModel.contentState.value.text.isNotEmpty()
+                                && viewModel.titleState.value.text.isNotEmpty()) {
+                                isNotSavedAlertExpanded.value = true
+                            }
                             else {
-                                isBackAlertExpanded.value = true
+                                navController.navigateUp()
                             }
                         }
                     ) {
@@ -536,9 +540,9 @@ fun AddNoteScreen(
                         }
                     }
 
-                    if (isBackAlertExpanded.value) {
+                    if (isNotSavedAlertExpanded.value) {
                         AlertDialog(
-                            onDismissRequest = { isBackAlertExpanded.value = false },
+                            onDismissRequest = { isNotSavedAlertExpanded.value = false },
                             modifier = Modifier
                                 .height(300.dp)
                                 .width(600.dp)
@@ -578,9 +582,9 @@ fun AddNoteScreen(
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 10.dp),
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically
+                                            .padding(horizontal = 10.dp)
+                                            .padding(start = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         Checkbox(
                                             checked = isChecked.value,
@@ -611,7 +615,7 @@ fun AddNoteScreen(
                                         GradientButton(
                                             brush = ThemeGradient,
                                             shape = RoundedCornerShape(8.dp),
-                                            onClick = { /*TODO*/ },
+                                            onClick = { viewModel.onEvent(AddNoteEvent.SaveNote) },
                                             modifier = Modifier
                                                 .width(60.dp)
                                                 .height(30.dp)
@@ -631,11 +635,11 @@ fun AddNoteScreen(
                                         Spacer(modifier = Modifier.width(10.dp))
 
                                         Button(
-                                            onClick = { /*TODO*/ },
+                                            onClick = { navController.navigateUp() },
                                             shape = RoundedCornerShape(8.dp),
                                             modifier = Modifier
                                                 .border(1.dp, Stroke, RoundedCornerShape(8.dp))
-                                                .width(100.dp)
+                                                .width(120.dp)
                                                 .height(30.dp),
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Background
