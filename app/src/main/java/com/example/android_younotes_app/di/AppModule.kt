@@ -2,15 +2,15 @@ package com.example.android_younotes_app.di
 
 import android.app.Application
 import androidx.room.Room
-import androidx.room.migration.Migration
+import com.example.android_younotes_app.core.UserPreferencesRepository
 import com.example.android_younotes_app.data.data_source.NoteDatabase
 import com.example.android_younotes_app.data.repository.NoteRepositoryImpl
 import com.example.android_younotes_app.domain.repository.NoteRepository
-import com.example.android_younotes_app.domain.use_cases.AddNote
-import com.example.android_younotes_app.domain.use_cases.BookmarkNote
-import com.example.android_younotes_app.domain.use_cases.GetNoteById
-import com.example.android_younotes_app.domain.use_cases.GetNotes
-import com.example.android_younotes_app.domain.use_cases.NoteUseCases
+import com.example.android_younotes_app.domain.use_cases.notes.AddNote
+import com.example.android_younotes_app.domain.use_cases.notes.BookmarkNote
+import com.example.android_younotes_app.domain.use_cases.notes.GetNoteById
+import com.example.android_younotes_app.domain.use_cases.notes.GetNotes
+import com.example.android_younotes_app.domain.use_cases.notes.NoteUseCases
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,7 +1,6 @@
 package com.example.android_younotes_app.presentation.notes_screen
 
 import android.app.Activity
-import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,29 +20,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Dehaze
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,11 +53,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.R
@@ -64,12 +64,13 @@ import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.utils.CheckPermissions
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
+import com.example.android_younotes_app.presentation._global_components_.SideMenu
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.Primary
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
 import com.example.android_younotes_app.presentation.utils.Screen
-import java.util.jar.Manifest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,6 +82,8 @@ fun NotesScreen(
     val state = viewModel.state.value
 
     val scaffoldState = rememberBottomSheetScaffoldState()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
 
     val searchText = remember {
         mutableStateOf(TextFieldValue("Search your note..."))
@@ -111,166 +114,180 @@ fun NotesScreen(
         }
     }
 
-    Scaffold(
-        floatingActionButton = {
-            GradientFloatingActionButton(
-                brush = ThemeGradient,
-                onClick = {
-                      navController.navigate(Screen.AddNoteScreen.route)
-                },
-                icon = Icons.Default.Add,
-                modifier = Modifier
-                    .offset(x = (-32).dp, y = (-32).dp)
-            )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        containerColor = Background
-    ) { it ->
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = 30.dp,
-                        vertical = 16.dp
+    SideMenu(
+        navController = navController,
+        drawerState = drawerState,
+        content = {
+            Scaffold(
+                floatingActionButton = {
+                    GradientFloatingActionButton(
+                        brush = ThemeGradient,
+                        onClick = {
+                            navController.navigate(Screen.AddNoteScreen.route)
+                        },
+                        icon = Icons.Default.Add,
+                        modifier = Modifier
+                            .offset(x = (-32).dp, y = (-32).dp)
                     )
-                    .clip(RoundedCornerShape(30.dp))
-                    .background(Primary),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = 12.dp,
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
+                },
+                floatingActionButtonPosition = FabPosition.End,
+                containerColor = Background
+            ) { it ->
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    IconButton(
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier.size(55.dp)
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Dehaze,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(
-                                horizontal = 8.dp
-                            )
-                            .background(Primary)
-                            .border(
-                                border = BorderStroke(1.dp, Stroke),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                    ) {
-                        BasicTextField(
-                            value = searchText.value,
-                            onValueChange = {
-                                searchText.value = it
-                            },
-                            textStyle = TextStyle(
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 14.sp,
-                                lineHeight = 24.sp,
-                                letterSpacing = 0.5.sp,
-                                color = Color.Gray
-                            ),
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    horizontal = 16.dp,
-                                    vertical = 8.dp
+                                    horizontal = 30.dp,
+                                    vertical = 16.dp
                                 )
-                        )
+                                .clip(RoundedCornerShape(30.dp))
+                                .background(Primary),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = 12.dp,
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconButton(
+                                    onClick = { coroutineScope.launch {
+                                        drawerState.open() }
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Dehaze,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                        .padding(
+                                            horizontal = 8.dp
+                                        )
+                                        .background(Primary)
+                                        .border(
+                                            border = BorderStroke(1.dp, Stroke),
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                ) {
+                                    BasicTextField(
+                                        value = searchText.value,
+                                        onValueChange = {
+                                            searchText.value = it
+                                        },
+                                        textStyle = TextStyle(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 14.sp,
+                                            lineHeight = 24.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = Color.Gray
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(
+                                                horizontal = 16.dp,
+                                                vertical = 8.dp
+                                            )
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { /*TODO*/ },
+                                    modifier = Modifier.size(55.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AccountCircle,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            if (!canLoadMedia.value) return@Column
+                            SectionTitle(title = "Pinned")
+                            NotesGrid(
+                                notes = state.notes.filter { note -> note.isPinned == true },
+                                canLoadMedia = canLoadMedia.value
+                            )
+                            Spacer(modifier = Modifier.height(32.dp))
+
+                            SectionTitle(title = "All notes")
+                            NotesGrid(
+                                notes = state.notes.filter { note -> note.isPinned == false },
+                                canLoadMedia = canLoadMedia.value
+                            )
+                        }
+
+                        if (state.notes.isEmpty()) return@Scaffold
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.notes_img),
+                                contentDescription = null,
+                                modifier = Modifier.size(180.dp)
+                            )
+                            Text(
+                                text = "There is no notes",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 24.sp,
+                                    lineHeight = 24.sp,
+                                    letterSpacing = 0.5.sp,
+                                    color = Color.White
+                                )
+                            )
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.pencil_img),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    modifier = Modifier.padding(top = 15.dp),
+                                    text = "Make a new one",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 16.sp,
+                                        lineHeight = 24.sp,
+                                        letterSpacing = 0.5.sp,
+                                        color = Color.White
+                                    )
+                                )
+                            }
+                        }
                     }
-                    IconButton(
-                        onClick = { /*TODO*/ },
-                        modifier = Modifier.size(55.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                if (!canLoadMedia.value) return@Column
-                SectionTitle(title = "Pinned")
-                NotesGrid(
-                    notes = state.notes.filter { note -> note.isPinned == true },
-                    canLoadMedia = canLoadMedia.value
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                SectionTitle(title = "All notes")
-                NotesGrid(
-                    notes = state.notes.filter { note -> note.isPinned == false },
-                    canLoadMedia = canLoadMedia.value
-                )
-            }
-
-            if (state.notes.isEmpty()) return@Scaffold
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.notes_img),
-                    contentDescription = null,
-                    modifier = Modifier.size(180.dp)
-                )
-                Text(
-                    text = "There is no notes",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 24.sp,
-                        lineHeight = 24.sp,
-                        letterSpacing = 0.5.sp,
-                        color = Color.White
-                    )
-                )
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.pencil_img),
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Text(
-                        modifier = Modifier.padding(top = 15.dp),
-                        text = "Make a new one",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 16.sp,
-                            lineHeight = 24.sp,
-                            letterSpacing = 0.5.sp,
-                            color = Color.White
-                        )
-                    )
                 }
             }
         }
-    }
+    )
 }
 
 @Composable

@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_younotes_app.domain.models.InvalidNoteException
 import com.example.android_younotes_app.domain.models.Note
-import com.example.android_younotes_app.domain.use_cases.NoteUseCases
+import com.example.android_younotes_app.domain.use_cases.notes.NoteUseCases
 import com.example.android_younotes_app.domain.utils.ImagesUtils
 import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,6 +64,23 @@ class AddNoteViewModel @Inject constructor(
                     backgroundImagePath = uri.toString()
                 )
             ImagesUtils.saveImageToFile(uri, context)
+
+            _additionalState.value = additionalState.value.copy(
+                previewImagePath = null
+            )
+        }
+    }
+
+    fun setPreviewImageUri(uri: Uri, context: Context) {
+        viewModelScope.launch {
+            _additionalState.value = additionalState.value.copy(
+                previewImagePath = uri.toString()
+            )
+            ImagesUtils.saveImageToFile(uri, context)
+
+            _additionalState.value = additionalState.value.copy(
+                backgroundImagePath = null
+            )
         }
     }
 
@@ -72,9 +89,7 @@ class AddNoteViewModel @Inject constructor(
             is ContextMenuAddNote.Delete -> {
 
             }
-            is ContextMenuAddNote.SelectColor -> {
-
-            }
+            is ContextMenuAddNote.SelectColor -> TODO()
         }
     }
 
@@ -138,6 +153,9 @@ class AddNoteViewModel @Inject constructor(
                                 backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
                                     Uri.parse(_additionalState.value.backgroundImagePath)
                                 },
+                                previewImagePath = _additionalState.value.previewImagePath?.let {
+                                    Uri.parse(_additionalState.value.previewImagePath)
+                                },
                                 backgroundGradient = additionalState.value.backgroundGradient?.index,
                                 id = _currentNoteId
                             )
@@ -154,6 +172,11 @@ class AddNoteViewModel @Inject constructor(
             }
 
             is AddNoteEvent.AddBackground -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.OpenGallery)
+                }
+            }
+            is AddNoteEvent.AddPreview -> {
                 viewModelScope.launch {
                     _eventFlow.emit(UiEvent.OpenGallery)
                 }

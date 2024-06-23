@@ -1,4 +1,4 @@
-package com.example.android_younotes_app.domain.use_cases
+package com.example.android_younotes_app.domain.use_cases.notes
 
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.repository.NoteRepository

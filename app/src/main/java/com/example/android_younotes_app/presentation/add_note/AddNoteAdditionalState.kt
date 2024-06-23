@@ -9,6 +9,5 @@ data class AddNoteAdditionalState(
     val noteTag: String? = null,
     var backgroundGradient: NoteGradient? = null,
     val backgroundImagePath: String? = null,
-    val previewGradient: NoteGradient? = null,
     val previewImagePath: String? = null
 )

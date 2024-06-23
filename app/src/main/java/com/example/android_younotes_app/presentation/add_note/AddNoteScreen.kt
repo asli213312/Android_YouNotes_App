@@ -2,11 +2,11 @@ package com.example.android_younotes_app.presentation.add_note
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.LinearGradient
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +29,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,7 +40,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -47,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,22 +56,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes.presentation.ui.theme.light
 import com.example.android_younotes.presentation.ui.theme.medium
+import com.example.android_younotes_app.core.UserPreferencesViewModel
 import com.example.android_younotes_app.domain.models.NoteDefaultGradients
 import com.example.android_younotes_app.domain.utils.ImagesUtils
+import com.example.android_younotes_app.presentation._global_components_.GradientButton
 import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
 import com.example.android_younotes_app.presentation.ui.theme.Background
+import com.example.android_younotes_app.presentation.ui.theme.BlackGradient
 import com.example.android_younotes_app.presentation.ui.theme.Primary
+import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,21 +82,48 @@ import kotlinx.coroutines.flow.collectLatest
 fun AddNoteScreen(
     navController: NavController,
     context: Context,
-    viewModel: AddNoteViewModel = hiltViewModel()
+    viewModel: AddNoteViewModel = hiltViewModel(),
+    userPreferencesViewModel: UserPreferencesViewModel
 ) {
     val title by viewModel.titleState
     val content by viewModel.contentState
 
     val additionalState by viewModel.additionalState
+    val userState by userPreferencesViewModel.state
 
-    val backgroundImg: Bitmap? by produceState<Bitmap?>(initialValue = null, additionalState.backgroundImagePath) {
+    val backgroundImg: Bitmap? by produceState<Bitmap?>(
+        initialValue = null,
+        additionalState.backgroundImagePath
+    ) {
         value = additionalState.backgroundImagePath?.let {
             val uri = Uri.parse(it)
             ImagesUtils.loadImageFromUri(uri, context)
         }
     }
 
-    val isMenuExpanded = remember() {
+    val previewImg: Bitmap? by produceState<Bitmap?>(
+        initialValue = null,
+        additionalState.previewImagePath
+    ) {
+        value = additionalState.previewImagePath?.let {
+            val uri = Uri.parse(it)
+            ImagesUtils.loadImageFromUri(uri, context)
+        }
+    }
+
+    val spacerPreview by animateDpAsState(
+        targetValue =
+        if (previewImg == null)
+            80.dp
+        else 70.dp,
+        label = ""
+    )
+
+    val isContextMenuExpanded = remember() {
+        mutableStateOf(false)
+    }
+
+    val isBackAlertExpanded = remember {
         mutableStateOf(false)
     }
 
@@ -116,23 +146,31 @@ fun AddNoteScreen(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            viewModel.setBackgroundImageUri(it, context)
+
+            if (viewModel.additionalState.value.previewImagePath == null)
+                viewModel.setPreviewImageUri(it, context)
+            else if (viewModel.additionalState.value.backgroundImagePath == null)
+                viewModel.setBackgroundImageUri(it, context)
         }
     }
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
-            when(event) {
+            when (event) {
                 is UiEvent.SaveNote -> {
                     Toast.makeText(context, "Note saved!", Toast.LENGTH_SHORT).show()
                     navController.navigateUp()
                 }
+
                 is UiEvent.ShowSnackbar -> {
-                    Toast.makeText(context, "Something got wrong... try later", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Something got wrong... try later", Toast.LENGTH_LONG)
+                        .show()
                 }
+
                 is UiEvent.BookmarkNote -> {
                     Toast.makeText(context, "Note bookmarked!", Toast.LENGTH_SHORT).show()
                 }
+
                 UiEvent.OpenGallery -> {
                     launcherForContent.launch("image/*")
                 }
@@ -145,7 +183,7 @@ fun AddNoteScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        if (backgroundImg != null) {
+        if (backgroundImg != null && previewImg == null) {
             Image(
                 bitmap = backgroundImg!!.asImageBitmap(),
                 contentDescription = null,
@@ -153,8 +191,7 @@ fun AddNoteScreen(
                 modifier = Modifier.fillMaxSize(),
                 alpha = 0.3f
             )
-        }
-        else if (additionalState.backgroundGradient == null) {
+        } else if (additionalState.backgroundGradient == null && userState.isSystemTheme) {
             Image(
                 painter = painterResource(id = R.drawable.system_background),
                 contentDescription = null,
@@ -162,13 +199,21 @@ fun AddNoteScreen(
                 modifier = Modifier.fillMaxSize(),
                 alpha = 0.3f
             )
-        }
-        else {
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = additionalState.backgroundGradient!!.brush
-                )
+        } else if (additionalState.backgroundGradient != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = additionalState.backgroundGradient!!.brush
+                    )
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = BlackGradient
+                    )
             )
         }
         Column(
@@ -186,7 +231,16 @@ fun AddNoteScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
-                        onClick = { navController.navigateUp() }
+                        onClick = {
+
+                            if (viewModel.contentState.value.text.isEmpty()
+                                && viewModel.titleState.value.text.isEmpty()
+                            )
+                                navController.navigateUp()
+                            else {
+                                isBackAlertExpanded.value = true
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -257,39 +311,83 @@ fun AddNoteScreen(
                 .padding(start = 12.dp)
                 .fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        color = Color.White.copy(alpha = 0.02f),
-                        shape = RoundedCornerShape(4.dp)
+
+            Spacer(modifier = Modifier.height(spacerPreview))
+
+            if (previewImg != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        bitmap = previewImg!!.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .matchParentSize(),
+                        alpha = 1f
                     )
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-                    .padding(bottom = 4.dp)
-            ) {
-                BasicTextField(
-                    value = title.text,
-                    onValueChange = {
-                        viewModel.onEvent(AddNoteEvent.EnteredTitle(it))
-                    },
-                    textStyle = TextStyle(
-                        fontFamily = medium,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 20.sp,
-                        lineHeight = 24.sp,
-                        letterSpacing = 0.5.sp,
-                        color = Color.Gray
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    BasicTextField(
+                        value = title.text,
+                        onValueChange = {
+                            viewModel.onEvent(AddNoteEvent.EnteredTitle(it))
+                        },
+                        textStyle = TextStyle(
+                            fontFamily = medium,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 20.sp,
+                            lineHeight = 24.sp,
+                            letterSpacing = 0.5.sp,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(10.dp))
+            if (previewImg == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            color = Color.White.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(bottom = 4.dp)
+                ) {
+                    BasicTextField(
+                        value = title.text,
+                        onValueChange = {
+                            viewModel.onEvent(AddNoteEvent.EnteredTitle(it))
+                        },
+                        textStyle = TextStyle(
+                            fontFamily = medium,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 20.sp,
+                            lineHeight = 24.sp,
+                            letterSpacing = 0.5.sp,
+                            color = Color.Gray
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            Spacer(
+                modifier = Modifier.height(
+                    if (previewImg == null)
+                        10.dp
+                    else 20.dp
+                )
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = Color.White.copy(alpha = 0.015f),
+                        color = Color.White.copy(alpha = 0.05f),
                         shape = RoundedCornerShape(4.dp)
                     )
                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -351,7 +449,7 @@ fun AddNoteScreen(
                         )
                     }
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = { viewModel.onEvent(AddNoteEvent.AddPreview) }
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.vector_camera),
@@ -362,7 +460,7 @@ fun AddNoteScreen(
                         )
                     }
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = { }
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.vector_mic),
@@ -386,7 +484,7 @@ fun AddNoteScreen(
                     )
                     Spacer(modifier = Modifier.width(32.dp))
                     IconButton(
-                        onClick = { isMenuExpanded.value = true }
+                        onClick = { isContextMenuExpanded.value = true }
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.vector_vertical_dots),
@@ -398,8 +496,8 @@ fun AddNoteScreen(
                     }
 
                     DropdownMenu(
-                        expanded = isMenuExpanded.value,
-                        onDismissRequest = { isMenuExpanded.value = false },
+                        expanded = isContextMenuExpanded.value,
+                        onDismissRequest = { isContextMenuExpanded.value = false },
                         offset = DpOffset(230.dp, (-50).dp),
                         modifier = Modifier
                             .background(Background)
@@ -411,7 +509,7 @@ fun AddNoteScreen(
                                         0 -> viewModel.onContextOption(ContextMenuAddNote.Delete)
                                         1 -> selectColorDialogIsOpen = true
                                     }
-                                    isMenuExpanded.value = false
+                                    isContextMenuExpanded.value = false
                                 },
                                 text = {
                                     val option = menuOptions[index]
@@ -438,55 +536,179 @@ fun AddNoteScreen(
                         }
                     }
 
-                    if (!selectColorDialogIsOpen) return@Column
-                    AlertDialog(
-                        onDismissRequest = { selectColorDialogIsOpen = false },
-                        modifier = Modifier.height(200.dp),
-                    ) {
-                        Box(
+                    if (isBackAlertExpanded.value) {
+                        AlertDialog(
+                            onDismissRequest = { isBackAlertExpanded.value = false },
                             modifier = Modifier
-                                .background(
-                                    color = Primary.copy(1f),
-                                    shape = RoundedCornerShape(32.dp)
-                                )
-                                .border(1.dp, Stroke, RoundedCornerShape(32.dp)),
-                            contentAlignment = Alignment.Center
-                       ) {
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "Select color",
-                                    style = TextStyle(
-                                        fontFamily = medium,
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 18.sp,
-                                        lineHeight = 24.sp,
-                                        letterSpacing = 0.5.sp,
-                                        color = Color.White
+                                .height(300.dp)
+                                .width(600.dp)
+                                .padding(horizontal = 40.dp, vertical = 26.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = Primary.copy(1f),
+                                        shape = RoundedCornerShape(32.dp)
                                     )
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Row(
-                                    modifier =  Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
+                                    .border(2.dp, Stroke, RoundedCornerShape(32.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    defaultNoteGradients.forEach { gradient ->
-                                        Box(
-                                            modifier = Modifier
-                                                .background(
-                                                    brush = gradient.brush,
-                                                    shape = CircleShape
-                                                )
-                                                .size(60.dp)
-                                                .clickable {
-                                                    additionalState.backgroundGradient = gradient
-                                                    selectColorDialogIsOpen = false
-                                                }
+                                    Text(
+                                        text = "Save this note?",
+                                        style = TextStyle(
+                                            fontFamily = medium,
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 24.sp,
+                                            lineHeight = 24.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = Color.White
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 10.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(30.dp))
+
+                                    val isChecked = remember {
+                                        mutableStateOf(false)
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 10.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = isChecked.value,
+                                            onCheckedChange = { isChecked.value = it }
                                         )
-                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "Enable auto save",
+                                            style = TextStyle(
+                                                fontFamily = medium,
+                                                fontWeight = FontWeight.Normal,
+                                                fontSize = 14.sp,
+                                                lineHeight = 24.sp,
+                                                letterSpacing = 0.5.sp,
+                                                color = Color.White
+                                            )
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(15.dp))
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        GradientButton(
+                                            brush = ThemeGradient,
+                                            shape = RoundedCornerShape(8.dp),
+                                            onClick = { /*TODO*/ },
+                                            modifier = Modifier
+                                                .width(60.dp)
+                                                .height(30.dp)
+                                        ) {
+                                            Text(
+                                                text = "Save",
+                                                style = TextStyle(
+                                                    fontFamily = medium,
+                                                    fontWeight = FontWeight.Normal,
+                                                    fontSize = 16.sp,
+                                                    lineHeight = 24.sp,
+                                                    letterSpacing = 0.5.sp,
+                                                    color = Color.White
+                                                )
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        Button(
+                                            onClick = { /*TODO*/ },
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier
+                                                .border(1.dp, Stroke, RoundedCornerShape(8.dp))
+                                                .width(100.dp)
+                                                .height(30.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = Background
+                                            )
+                                        ) {
+                                            Text(
+                                                text = "Discard",
+                                                style = TextStyle(
+                                                    fontFamily = medium,
+                                                    fontWeight = FontWeight.Normal,
+                                                    fontSize = 16.sp,
+                                                    lineHeight = 24.sp,
+                                                    letterSpacing = 0.5.sp,
+                                                    color = Color.White
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!selectColorDialogIsOpen) return@Column
+                        AlertDialog(
+                            onDismissRequest = { selectColorDialogIsOpen = false },
+                            modifier = Modifier.height(200.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        color = Primary.copy(1f),
+                                        shape = RoundedCornerShape(32.dp)
+                                    )
+                                    .border(1.dp, Stroke, RoundedCornerShape(32.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "Select color",
+                                        style = TextStyle(
+                                            fontFamily = medium,
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 18.sp,
+                                            lineHeight = 24.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = Color.White
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        defaultNoteGradients.forEach { gradient ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .background(
+                                                        brush = gradient.brush,
+                                                        shape = CircleShape
+                                                    )
+                                                    .size(60.dp)
+                                                    .clickable {
+                                                        additionalState.backgroundGradient =
+                                                            gradient
+                                                        selectColorDialogIsOpen = false
+                                                    }
+                                            )
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                        }
                                     }
                                 }
                             }

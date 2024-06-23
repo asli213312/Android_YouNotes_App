@@ -31,8 +31,8 @@ val BlackGradient = Brush.linearGradient(
 
 val RedGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xB3CA4E52),
-        Color(0xB36A2146)
+        Color(0xB3FF5980),
+        Color(0xB34E1934)
     ),
     start = Offset.Zero,
     end = Offset.Infinite,
@@ -41,8 +41,8 @@ val RedGradient = Brush.linearGradient(
 
 val GreenGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xB34ECA54),
-        Color(0xB3418835)
+        Color(0xB323EE2C),
+        Color(0xB32A5822)
     ),
     start = Offset.Zero,
     end = Offset.Infinite,

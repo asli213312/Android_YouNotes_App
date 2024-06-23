@@ -9,5 +9,6 @@ sealed class AddNoteEvent{
     data class ChangeContentFocus(val focusState: FocusState): AddNoteEvent()
     data object SaveNote: AddNoteEvent()
     data object AddBackground: AddNoteEvent()
+    data object AddPreview: AddNoteEvent()
     data object BookmarkNote: AddNoteEvent()
 }
