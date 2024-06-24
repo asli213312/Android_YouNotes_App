@@ -147,9 +147,9 @@ fun AddNoteScreen(
     ) { uri: Uri? ->
         uri?.let {
 
-            if (viewModel.additionalState.value.previewImagePath == null)
+            if (!viewModel.selectedBackground.value)
                 viewModel.setPreviewImageUri(it, context)
-            else if (viewModel.additionalState.value.backgroundImagePath == null)
+            else
                 viewModel.setBackgroundImageUri(it, context)
         }
     }

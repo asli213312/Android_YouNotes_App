@@ -111,6 +111,7 @@ fun NotesScreen(
     } else {
         SideEffect {
             permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            permissionLauncher.launch(android.Manifest.permission.MANAGE_DOCUMENTS)
         }
     }
 
@@ -225,62 +226,64 @@ fun NotesScreen(
                                 .fillMaxSize()
                                 .padding(16.dp)
                         ) {
-                            if (!canLoadMedia.value) return@Column
-                            SectionTitle(title = "Pinned")
-                            NotesGrid(
-                                notes = state.notes.filter { note -> note.isPinned == true },
-                                canLoadMedia = canLoadMedia.value
-                            )
-                            Spacer(modifier = Modifier.height(32.dp))
+                            if (canLoadMedia.value) {
+                                SectionTitle(title = "Pinned")
+                                NotesGrid(
+                                    notes = state.notes.filter { note -> note.isPinned == true },
+                                    canLoadMedia = canLoadMedia.value
+                                )
+                                Spacer(modifier = Modifier.height(32.dp))
 
-                            SectionTitle(title = "All notes")
-                            NotesGrid(
-                                notes = state.notes.filter { note -> note.isPinned == false },
-                                canLoadMedia = canLoadMedia.value
-                            )
+                                SectionTitle(title = "All notes")
+                                NotesGrid(
+                                    notes = state.notes.filter { note -> note.isPinned == false },
+                                    canLoadMedia = canLoadMedia.value
+                                )
+                            }
                         }
 
-                        if (state.notes.isEmpty()) return@Scaffold
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.notes_img),
-                                contentDescription = null,
-                                modifier = Modifier.size(180.dp)
-                            )
-                            Text(
-                                text = "There is no notes",
-                                style = TextStyle(
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 24.sp,
-                                    lineHeight = 24.sp,
-                                    letterSpacing = 0.5.sp,
-                                    color = Color.White
-                                )
-                            )
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
+                        if (state.notes.isEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.pencil_img),
+                                    painter = painterResource(id = R.drawable.notes_img),
                                     contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(180.dp)
                                 )
                                 Text(
-                                    modifier = Modifier.padding(top = 15.dp),
-                                    text = "Make a new one",
+                                    text = "There is no notes",
                                     style = TextStyle(
                                         fontWeight = FontWeight.Normal,
-                                        fontSize = 16.sp,
+                                        fontSize = 24.sp,
                                         lineHeight = 24.sp,
                                         letterSpacing = 0.5.sp,
                                         color = Color.White
                                     )
                                 )
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.pencil_img),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Text(
+                                        modifier = Modifier.padding(top = 15.dp),
+                                        text = "Make a new one",
+                                        style = TextStyle(
+                                            fontWeight = FontWeight.Normal,
+                                            fontSize = 16.sp,
+                                            lineHeight = 24.sp,
+                                            letterSpacing = 0.5.sp,
+                                            color = Color.White
+                                        )
+                                    )
+                                }
                             }
                         }
                     }

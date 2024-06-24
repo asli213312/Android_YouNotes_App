@@ -35,6 +35,8 @@ class AddNoteViewModel @Inject constructor(
     private val _additionalState = mutableStateOf(AddNoteAdditionalState())
     val additionalState: State<AddNoteAdditionalState> = _additionalState
 
+    val selectedBackground = mutableStateOf(false)
+
     private var noteExists: Boolean = false
     private var _noteIsBookmarked: Boolean? = false
     private var _currentNoteId: Int? = null
@@ -62,7 +64,7 @@ class AddNoteViewModel @Inject constructor(
         viewModelScope.launch {
             _additionalState.value = additionalState.value.copy(
                     backgroundImagePath = uri.toString()
-                )
+            )
             ImagesUtils.saveImageToFile(uri, context)
 
             _additionalState.value = additionalState.value.copy(
@@ -153,10 +155,10 @@ class AddNoteViewModel @Inject constructor(
                                 backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
                                     Uri.parse(_additionalState.value.backgroundImagePath)
                                 },
+                                backgroundGradient = additionalState.value.backgroundGradient?.index,
                                 previewImagePath = _additionalState.value.previewImagePath?.let {
                                     Uri.parse(_additionalState.value.previewImagePath)
                                 },
-                                backgroundGradient = additionalState.value.backgroundGradient?.index,
                                 id = _currentNoteId
                             )
                         )
@@ -173,11 +175,13 @@ class AddNoteViewModel @Inject constructor(
 
             is AddNoteEvent.AddBackground -> {
                 viewModelScope.launch {
+                    selectedBackground.value = true
                     _eventFlow.emit(UiEvent.OpenGallery)
                 }
             }
             is AddNoteEvent.AddPreview -> {
                 viewModelScope.launch {
+                    selectedBackground.value = false
                     _eventFlow.emit(UiEvent.OpenGallery)
                 }
             }

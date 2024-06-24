@@ -20,7 +20,6 @@ data class Note(
     val backgroundImagePath: Uri? = null,
     val backgroundGradient: Int? = null,
     val previewImagePath: Uri? = null,
-    val previewGradient: Int? = null,
     @PrimaryKey
     val id: Int? = null
 )
