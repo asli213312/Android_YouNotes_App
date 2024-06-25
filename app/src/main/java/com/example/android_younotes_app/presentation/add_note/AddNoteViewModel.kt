@@ -111,7 +111,39 @@ class AddNoteViewModel @Inject constructor(
 
             }
             is ContextMenuAddNote.SelectColor -> TODO()
-            is ContextMenuAddNote.Duplicate -> TODO()
+            is ContextMenuAddNote.Duplicate -> {
+                _currentNoteId?.let {
+                    viewModelScope.launch {
+                        try {
+                            noteUseCases.addNote(
+                                Note(
+                                    title = _titleState.value.text,
+                                    content = _contentState.value.text,
+                                    lastChanged = System.currentTimeMillis(),
+                                    timeCreated = System.currentTimeMillis(),
+                                    isPinned = _noteIsBookmarked,
+                                    tag = _additionalState.value.noteTag,
+                                    backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
+                                        Uri.parse(_additionalState.value.backgroundImagePath)
+                                    },
+                                    backgroundGradient = additionalState.value.backgroundGradient?.index,
+                                    previewImagePath = _additionalState.value.previewImagePath?.let {
+                                        Uri.parse(_additionalState.value.previewImagePath)
+                                    },
+                                    id = _currentNoteId!!.plus(1)
+                                )
+                            )
+                            _eventFlow.emit(UiEvent.SaveNote)
+                        } catch (e: InvalidNoteException) {
+                            _eventFlow.emit(
+                                UiEvent.ShowSnackbar(
+                                    message = e.message ?: "Couldn't save note."
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 

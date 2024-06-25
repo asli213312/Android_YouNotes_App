@@ -172,7 +172,7 @@ fun AddNoteScreen(
                     Toast.makeText(context, "Note bookmarked!", Toast.LENGTH_SHORT).show()
                 }
 
-                UiEvent.OpenGallery -> {
+                is UiEvent.OpenGallery -> {
                     launcherForContent.launch("image/*")
                 }
             }
@@ -513,7 +513,7 @@ fun AddNoteScreen(
                                     when (index) {
                                         0 -> viewModel.onContextOption(ContextMenuAddNote.Delete)
                                         1 -> selectColorDialogIsOpen = true
-                                        2 -> null
+                                        2 -> viewModel.onContextOption(ContextMenuAddNote.Duplicate)
                                     }
                                     isContextMenuExpanded.value = false
                                 },
