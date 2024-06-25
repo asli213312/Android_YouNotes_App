@@ -135,7 +135,8 @@ fun AddNoteScreen(
 
     val menuOptions = listOf(
         ContextMenuAddNote.Delete,
-        ContextMenuAddNote.SelectColor
+        ContextMenuAddNote.SelectColor,
+        ContextMenuAddNote.Duplicate
     )
 
     var selectColorDialogIsOpen by remember {
@@ -512,6 +513,7 @@ fun AddNoteScreen(
                                     when (index) {
                                         0 -> viewModel.onContextOption(ContextMenuAddNote.Delete)
                                         1 -> selectColorDialogIsOpen = true
+                                        2 -> null
                                     }
                                     isContextMenuExpanded.value = false
                                 },

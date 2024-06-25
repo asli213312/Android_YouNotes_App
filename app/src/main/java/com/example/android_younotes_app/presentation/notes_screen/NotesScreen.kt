@@ -48,8 +48,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -65,6 +67,8 @@ import com.example.android_younotes_app.domain.utils.CheckPermissions
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
 import com.example.android_younotes_app.presentation._global_components_.SideMenu
+import com.example.android_younotes_app.presentation.add_note.AddNoteEvent
+import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.Primary
 import com.example.android_younotes_app.presentation.ui.theme.Stroke
@@ -77,7 +81,8 @@ import kotlinx.coroutines.launch
 fun NotesScreen(
     activity: Activity,
     navController: NavController,
-    viewModel: NotesViewModel = hiltViewModel()
+    viewModel: NotesViewModel = hiltViewModel(),
+    addNoteViewModel: AddNoteViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
 
@@ -126,7 +131,8 @@ fun NotesScreen(
                         onClick = {
                             navController.navigate(Screen.AddNoteScreen.route)
                         },
-                        icon = Icons.Default.Add,
+                        icon = ImageVector.vectorResource(R.drawable.vector_add_note),
+                        iconTint = Color.White,
                         modifier = Modifier
                             .offset(x = (-32).dp, y = (-32).dp)
                     )
@@ -230,14 +236,24 @@ fun NotesScreen(
                                 SectionTitle(title = "Pinned")
                                 NotesGrid(
                                     notes = state.notes.filter { note -> note.isPinned == true },
-                                    canLoadMedia = canLoadMedia.value
+                                    canLoadMedia = canLoadMedia.value,
+                                    onClick = { note ->
+                                        navController.navigate(
+                                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
+                                        )
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(32.dp))
 
                                 SectionTitle(title = "All notes")
                                 NotesGrid(
                                     notes = state.notes.filter { note -> note.isPinned == false },
-                                    canLoadMedia = canLoadMedia.value
+                                    canLoadMedia = canLoadMedia.value,
+                                    onClick = { note ->
+                                        navController.navigate(
+                                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
+                                        )
+                                    }
                                 )
                             }
                         }
@@ -294,7 +310,7 @@ fun NotesScreen(
 }
 
 @Composable
-fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean) {
+fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean, onClick: (Note) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
@@ -305,9 +321,7 @@ fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean) {
             NoteItem(
                 hasPermissions = canLoadMedia,
                 context = LocalContext.current,
-                onClick = {
-
-                },
+                onClick = { onClick(note) },
                 note = note
             )
         }

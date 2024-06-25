@@ -18,4 +18,7 @@ sealed class ContextMenuAddNote(
     data object SelectColor : ContextMenuAddNote(
         "Select color", R.drawable.vector_select_color
     )
+    data object Duplicate : ContextMenuAddNote(
+        "Duplicate", R.drawable.vector_duplicate
+    )
 }

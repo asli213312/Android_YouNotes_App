@@ -123,7 +123,7 @@ fun NoteItem(
                     brush = if (hasBackground)
                         ClearGradient
                     else if (note.backgroundGradient != null)
-                        NoteDefaultGradients.selectGradientByIndex(note.backgroundGradient)
+                        NoteDefaultGradients.selectGradientByIndex(note.backgroundGradient).brush
                     else if (note.previewImagePath != null)
                         BlackGradient
                     else BlackGradient,
@@ -169,7 +169,7 @@ fun NoteItem(
                                 .fillMaxWidth()
                         ) {
                             Text(
-                                text = "Title",
+                                text = note.title,
                                 style = TextStyle(
                                     fontWeight = FontWeight.Normal,
                                     fontSize = 22.sp,
@@ -201,7 +201,7 @@ fun NoteItem(
                     }
                     Spacer(modifier = Modifier.height(26.dp))
                     Text(
-                        text = "Example note...",
+                        text = note.content,
                         style = TextStyle(
                             fontWeight = FontWeight.Normal,
                             fontSize = 16.sp,

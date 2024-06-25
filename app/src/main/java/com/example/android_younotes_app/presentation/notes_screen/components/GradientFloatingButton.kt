@@ -19,10 +19,12 @@ fun GradientFloatingActionButton(
     brush: Brush,
     onClick: () -> Unit,
     icon: ImageVector,
+    iconTint: Color,
     modifier: Modifier = Modifier
 ) {
     Icon(
         imageVector = icon,
+        tint = iconTint,
         contentDescription = null,
         modifier = modifier
             .background(brush = brush, shape = CircleShape)

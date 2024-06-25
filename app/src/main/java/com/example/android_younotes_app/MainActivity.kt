@@ -7,9 +7,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.android_younotes_app.core.UserPreferencesRepository
 import com.example.android_younotes_app.core.UserPreferencesViewModel
 import com.example.android_younotes_app.core.UserPreferencesViewModelFactory
@@ -43,7 +45,17 @@ class MainActivity : ComponentActivity() {
                             navController
                         )
                     }
-                    composable(Screen.AddNoteScreen.route) {
+                    composable(
+                        route = Screen.AddNoteScreen.route + "?noteId={noteId}",
+                        arguments = listOf(
+                            navArgument(
+                                name = "noteId"
+                            ) {
+                                type = NavType.IntType
+                                defaultValue = -1
+                            }
+                        )
+                    ) {
                         AddNoteScreen(
                             navController = navController,
                             context = context,

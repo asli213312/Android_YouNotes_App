@@ -30,14 +30,14 @@ sealed class NoteDefaultGradients {
         val GREEN: NoteGradient = NoteGradient.GREEN
         val THEME: NoteGradient = NoteGradient.THEME
 
-        fun selectGradientByIndex(index: Int): Brush {
+        fun selectGradientByIndex(index: Int): NoteGradient {
             when(index) {
-                0 -> return NoteGradient.RED.brush
-                1 -> return NoteGradient.GREEN.brush
-                2 -> return NoteGradient.THEME.brush
+                0 -> return NoteGradient.RED
+                1 -> return NoteGradient.GREEN
+                2 -> return NoteGradient.THEME
             }
 
-            return BlackGradient
+            return NoteGradient.THEME
         }
     }
 }
