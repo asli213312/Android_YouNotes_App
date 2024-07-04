@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.compose.ui.graphics.Brush
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.android_younotes_app.presentation.ui.theme.BlackGradient
 import com.example.android_younotes_app.presentation.ui.theme.GreenGradient
 import com.example.android_younotes_app.presentation.ui.theme.RedGradient
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
@@ -26,6 +25,13 @@ data class Note(
 
 sealed class NoteDefaultGradients {
     companion object {
+
+        val GRADIENTS = listOf<NoteGradient>(
+            NoteGradient.RED,
+            NoteGradient.GREEN,
+            NoteGradient.THEME
+        )
+
         val RED: NoteGradient = NoteGradient.RED
         val GREEN: NoteGradient = NoteGradient.GREEN
         val THEME: NoteGradient = NoteGradient.THEME

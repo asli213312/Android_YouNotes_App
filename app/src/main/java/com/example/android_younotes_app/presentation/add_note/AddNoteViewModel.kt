@@ -2,7 +2,6 @@ package com.example.android_younotes_app.presentation.add_note
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -17,7 +16,6 @@ import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -56,11 +54,11 @@ class AddNoteViewModel @Inject constructor(
                         _currentNoteId = note.id
 
                         _titleState.value = titleState.value.copy(
-                            text = note.title,
+                            query = note.title,
                             isHintVisible = false
                         )
                         _contentState.value = contentState.value.copy(
-                            text = note.content,
+                            query = note.content,
                             isHintVisible = false
                         )
                         _additionalState.value = additionalState.value.copy(
@@ -117,8 +115,8 @@ class AddNoteViewModel @Inject constructor(
                         try {
                             noteUseCases.addNote(
                                 Note(
-                                    title = _titleState.value.text,
-                                    content = _contentState.value.text,
+                                    title = _titleState.value.query,
+                                    content = _contentState.value.query,
                                     lastChanged = System.currentTimeMillis(),
                                     timeCreated = System.currentTimeMillis(),
                                     isPinned = _noteIsBookmarked,
@@ -151,23 +149,23 @@ class AddNoteViewModel @Inject constructor(
         when(event) {
             is AddNoteEvent.ChangeContentFocus -> {
                 _contentState.value = contentState.value.copy(
-                    isHintVisible = !event.focusState.isFocused && contentState.value.text.isBlank()
+                    isHintVisible = !event.focusState.isFocused && contentState.value.query.isBlank()
                 )
             }
             is AddNoteEvent.ChangeTitleFocus -> {
                 _titleState.value = titleState.value.copy(
-                    isHintVisible = !event.focusState.isFocused && titleState.value.text.isBlank()
+                    isHintVisible = !event.focusState.isFocused && titleState.value.query.isBlank()
                 )
             }
             is AddNoteEvent.EnteredContent -> {
                 _contentState.value = contentState.value.copy(
-                    text = event.value
+                    query = event.value
                 )
                 _additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
             is AddNoteEvent.EnteredTitle -> {
                 _titleState.value = titleState.value.copy(
-                    text = event.value
+                    query = event.value
                 )
                 _additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
@@ -198,8 +196,8 @@ class AddNoteViewModel @Inject constructor(
                     try {
                         noteUseCases.addNote(
                             Note(
-                                title = _titleState.value.text,
-                                content = _contentState.value.text,
+                                title = _titleState.value.query,
+                                content = _contentState.value.query,
                                 lastChanged = System.currentTimeMillis(),
                                 timeCreated = System.currentTimeMillis(),
                                 isPinned = _noteIsBookmarked,

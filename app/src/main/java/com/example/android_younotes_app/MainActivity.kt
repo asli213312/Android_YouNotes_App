@@ -17,6 +17,7 @@ import com.example.android_younotes_app.core.UserPreferencesViewModel
 import com.example.android_younotes_app.core.UserPreferencesViewModelFactory
 import com.example.android_younotes_app.presentation.add_note.AddNoteScreen
 import com.example.android_younotes_app.presentation.notes_screen.NotesScreen
+import com.example.android_younotes_app.presentation.search_screen.SearchScreen
 import com.example.android_younotes_app.presentation.settings.SettingScreen
 import com.example.android_younotes_app.presentation.ui.theme.Android_YouNotesTheme
 import com.example.android_younotes_app.presentation.utils.Screen
@@ -66,6 +67,12 @@ class MainActivity : ComponentActivity() {
                         SettingScreen(
                             navController = navController,
                             userViewModel = userPreferencesViewModel
+                        )
+                    }
+                    composable(Screen.SearchScreen.route) {
+                        SearchScreen(
+                            maxLength = 24,
+                            navController = navController,
                         )
                     }
                 }

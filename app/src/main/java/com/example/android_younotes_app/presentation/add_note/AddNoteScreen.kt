@@ -234,12 +234,12 @@ fun AddNoteScreen(
                     IconButton(
                         onClick = {
 
-                            if (viewModel.contentState.value.text.isEmpty()
-                                && viewModel.titleState.value.text.isEmpty()
+                            if (viewModel.contentState.value.query.isEmpty()
+                                && viewModel.titleState.value.query.isEmpty()
                             )
                                 navController.navigateUp()
-                            else if (viewModel.contentState.value.text.isNotEmpty()
-                                && viewModel.titleState.value.text.isNotEmpty()) {
+                            else if (viewModel.contentState.value.query.isNotEmpty()
+                                && viewModel.titleState.value.query.isNotEmpty()) {
                                 isNotSavedAlertExpanded.value = true
                             }
                             else {
@@ -336,7 +336,7 @@ fun AddNoteScreen(
                         alpha = 1f
                     )
                     BasicTextField(
-                        value = title.text,
+                        value = title.query,
                         onValueChange = {
                             viewModel.onEvent(AddNoteEvent.EnteredTitle(it))
                         },
@@ -365,7 +365,7 @@ fun AddNoteScreen(
                         .padding(bottom = 4.dp)
                 ) {
                     BasicTextField(
-                        value = title.text,
+                        value = title.query,
                         onValueChange = {
                             viewModel.onEvent(AddNoteEvent.EnteredTitle(it))
                         },
@@ -399,7 +399,7 @@ fun AddNoteScreen(
                     .padding(bottom = 30.dp)
             ) {
                 BasicTextField(
-                    value = content.text,
+                    value = content.query,
                     onValueChange = {
                         viewModel.onEvent(AddNoteEvent.EnteredContent(it))
                     },

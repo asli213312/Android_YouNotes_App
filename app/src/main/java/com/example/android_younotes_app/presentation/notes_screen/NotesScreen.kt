@@ -4,12 +4,15 @@ import android.app.Activity
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,33 +23,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Dehaze
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -54,27 +52,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.utils.CheckPermissions
+import com.example.android_younotes_app.presentation._global_components_.NotesTable
+import com.example.android_younotes_app.presentation._global_components_.SideMenu
+import com.example.android_younotes_app.presentation._global_components_.ThemeSearchBar
+import com.example.android_younotes_app.presentation.search_screen.SearchViewModel
+import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
-import com.example.android_younotes_app.presentation._global_components_.SideMenu
-import com.example.android_younotes_app.presentation.add_note.AddNoteEvent
-import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
 import com.example.android_younotes_app.presentation.ui.theme.Background
-import com.example.android_younotes_app.presentation.ui.theme.Primary
-import com.example.android_younotes_app.presentation.ui.theme.Stroke
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
 import com.example.android_younotes_app.presentation.utils.Screen
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,20 +79,20 @@ fun NotesScreen(
     activity: Activity,
     navController: NavController,
     viewModel: NotesViewModel = hiltViewModel(),
+    searchViewModel: SearchViewModel = hiltViewModel(),
     addNoteViewModel: AddNoteViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
 
-    val scaffoldState = rememberBottomSheetScaffoldState()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
 
-    val searchText = remember {
-        mutableStateOf(TextFieldValue("Search your note..."))
+    val contextMenuNoteState by remember {
+        mutableStateOf(false)
     }
 
     val canLoadMedia = remember {
-        mutableStateOf(false)
+        mutableStateOf(state.canLoadMedia)
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -120,197 +117,98 @@ fun NotesScreen(
         }
     }
 
-    SideMenu(
-        navController = navController,
-        drawerState = drawerState,
-        content = {
-            Scaffold(
-                floatingActionButton = {
-                    GradientFloatingActionButton(
-                        brush = ThemeGradient,
-                        onClick = {
-                            navController.navigate(Screen.AddNoteScreen.route)
-                        },
-                        icon = ImageVector.vectorResource(R.drawable.vector_add_note),
-                        iconTint = Color.White,
-                        modifier = Modifier
-                            .offset(x = (-32).dp, y = (-32).dp)
+    searchViewModel.initialize(state.notes)
+
+    SideMenu(navController = navController, drawerState = drawerState, content = {
+        Scaffold(
+            floatingActionButton = {
+                GradientFloatingActionButton(
+                    brush = ThemeGradient,
+                    onClick = {
+                        navController.navigate(Screen.AddNoteScreen.route)
+                    },
+                    icon = ImageVector.vectorResource(R.drawable.vector_add_note),
+                    iconTint = Color.White,
+                    modifier = Modifier.offset(x = (-32).dp, y = (-32).dp)
+                )
+            }, floatingActionButtonPosition = FabPosition.End, containerColor = Background
+        ) { it ->
+            ThemeSearchBar(
+                drawerState = drawerState,
+                placeholderText = searchViewModel.searchState.value.hint,
+                navController = navController
+            )
+
+            Spacer(modifier = Modifier.height(60.dp))
+            NotesTable(
+                onClickNote = { note ->
+                    navController.navigate(
+                        Screen.AddNoteScreen.route + "?noteId=${note.id}"
                     )
                 },
-                floatingActionButtonPosition = FabPosition.End,
-                containerColor = Background
-            ) { it ->
-                Box(
-                    modifier = Modifier.fillMaxSize()
+                canLoadMedia = canLoadMedia.value,
+                notes = state.notes,
+                addNoteViewModel = addNoteViewModel
+            )
+
+            if (state.notes.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
+                    Image(
+                        painter = painterResource(id = R.drawable.notes_img),
+                        contentDescription = null,
+                        modifier = Modifier.size(180.dp)
+                    )
+                    Text(
+                        text = "There is no notes", style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 24.sp,
+                            lineHeight = 24.sp,
+                            letterSpacing = 0.5.sp,
+                            color = Color.White
+                        )
+                    )
+                    Row(
+                        Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
                     ) {
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = 30.dp,
-                                    vertical = 16.dp
-                                )
-                                .clip(RoundedCornerShape(30.dp))
-                                .background(Primary),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        horizontal = 12.dp,
-                                    ),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
-                                    onClick = { coroutineScope.launch {
-                                        drawerState.open() }
-                                    },
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Dehaze,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                                Row(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
-                                        .padding(
-                                            horizontal = 8.dp
-                                        )
-                                        .background(Primary)
-                                        .border(
-                                            border = BorderStroke(1.dp, Stroke),
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
-                                ) {
-                                    BasicTextField(
-                                        value = searchText.value,
-                                        onValueChange = {
-                                            searchText.value = it
-                                        },
-                                        textStyle = TextStyle(
-                                            fontWeight = FontWeight.Normal,
-                                            fontSize = 14.sp,
-                                            lineHeight = 24.sp,
-                                            letterSpacing = 0.5.sp,
-                                            color = Color.Gray
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
-                                            )
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { /*TODO*/ },
-                                    modifier = Modifier.size(55.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AccountCircle,
-                                        contentDescription = null,
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp)
-                        ) {
-                            if (canLoadMedia.value) {
-                                SectionTitle(title = "Pinned")
-                                NotesGrid(
-                                    notes = state.notes.filter { note -> note.isPinned == true },
-                                    canLoadMedia = canLoadMedia.value,
-                                    onClick = { note ->
-                                        navController.navigate(
-                                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
-                                        )
-                                    }
-                                )
-                                Spacer(modifier = Modifier.height(32.dp))
-
-                                SectionTitle(title = "All notes")
-                                NotesGrid(
-                                    notes = state.notes.filter { note -> note.isPinned == false },
-                                    canLoadMedia = canLoadMedia.value,
-                                    onClick = { note ->
-                                        navController.navigate(
-                                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
-                                        )
-                                    }
-                                )
-                            }
-                        }
-
-                        if (state.notes.isEmpty()) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.notes_img),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(180.dp)
-                                )
-                                Text(
-                                    text = "There is no notes",
-                                    style = TextStyle(
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 24.sp,
-                                        lineHeight = 24.sp,
-                                        letterSpacing = 0.5.sp,
-                                        color = Color.White
-                                    )
-                                )
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.pencil_img),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Text(
-                                        modifier = Modifier.padding(top = 15.dp),
-                                        text = "Make a new one",
-                                        style = TextStyle(
-                                            fontWeight = FontWeight.Normal,
-                                            fontSize = 16.sp,
-                                            lineHeight = 24.sp,
-                                            letterSpacing = 0.5.sp,
-                                            color = Color.White
-                                        )
-                                    )
-                                }
-                            }
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.pencil_img),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            modifier = Modifier.padding(top = 15.dp),
+                            text = "Make a new one",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 16.sp,
+                                lineHeight = 24.sp,
+                                letterSpacing = 0.5.sp,
+                                color = Color.White
+                            )
+                        )
                     }
                 }
             }
         }
-    )
+    })
 }
 
 @Composable
-fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean, onClick: (Note) -> Unit) {
+fun NotesGrid(
+    notes: List<Note>,
+    canLoadMedia: Boolean,
+    onClick: (Note) -> Unit,
+    addNoteViewModel: AddNoteViewModel
+) {
+
+    var contextMenuState by remember { mutableStateOf(false) }
+    var selectedNotePos by remember { mutableStateOf(DpOffset.Zero) }
+    var selectedNote by remember { mutableStateOf<Note?>(null) }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
@@ -318,31 +216,100 @@ fun NotesGrid(notes: List<Note>, canLoadMedia: Boolean, onClick: (Note) -> Unit)
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(notes) { note ->
-            NoteItem(
+            NoteItem(note = note,
                 hasPermissions = canLoadMedia,
                 context = LocalContext.current,
                 onClick = { onClick(note) },
-                note = note
-            )
+                onLongPress = { coordinates ->
+                    contextMenuState = true
+                    //selectedNotePos = coordinates
+                    selectedNote = note
+
+                    Log.d("NotesScreen", "ContextMenuState: $contextMenuState")
+                },
+                setCoordinates = { coords ->
+                    selectedNotePos = coords
+                })
         }
     }
+
+    LongTapContextMenu(state = contextMenuState,
+        selectedNotePos = selectedNotePos,
+        onOptionSelected = { optionIndex ->
+            when (optionIndex) {
+                0 -> addNoteViewModel.onContextOption(ContextMenuAddNote.Delete)
+                1 -> addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate)
+            }
+            contextMenuState = false
+        },
+        onDismiss = { contextMenuState = false })
 }
 
 @Composable
 fun SectionTitle(title: String) {
     Text(
-        text = title,
-        style = TextStyle(
+        text = title, style = TextStyle(
             fontFamily = medium,
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 24.sp,
             letterSpacing = 0.5.sp,
             color = Color.White.copy(0.8f)
-        ),
-        color = Color.White,
-        modifier = Modifier
+        ), color = Color.White, modifier = Modifier
             .padding(vertical = 8.dp)
             .padding(start = 32.dp)
     )
+}
+
+@Composable
+private fun LongTapContextMenu(
+    state: Boolean,
+    selectedNotePos: DpOffset,
+    onOptionSelected: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val selectedNotePosState by remember { mutableStateOf(selectedNotePos) }
+
+    val contextItems = listOf(
+        ContextMenuAddNote.Delete, ContextMenuAddNote.Duplicate
+    )
+
+    AnimatedVisibility(
+        visible = state,
+        enter = fadeIn(animationSpec = tween(1000)) + expandVertically(animationSpec = tween(1000)),
+        exit = fadeOut(animationSpec = tween(1000)) + shrinkVertically(animationSpec = tween(1000))
+    ) {
+        DropdownMenu(
+            expanded = state, onDismissRequest = {
+                onDismiss.invoke()
+            }, offset = DpOffset(
+                x = selectedNotePosState.x + 30.dp, y = selectedNotePosState.y
+            ), modifier = Modifier.background(Background)
+        ) {
+            contextItems.forEachIndexed { index, selectedOption ->
+                DropdownMenuItem(onClick = {
+                    onOptionSelected(index)
+                }, text = {
+                    val option = contextItems[index]
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(option.icon),
+                            contentDescription = null,
+                            tint = option.color,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = contextItems[index].title, color = Color.White
+                        )
+                    }
+                })
+            }
+        }
+    }
 }
