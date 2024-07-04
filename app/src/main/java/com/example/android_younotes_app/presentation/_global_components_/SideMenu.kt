@@ -110,7 +110,9 @@ fun SideMenu(
                                     DrawerMenuItem.Settings -> {
                                         navController.navigate(Screen.SettingsScreen.route)
                                     }
-                                    DrawerMenuItem.Thrash -> TODO()
+                                    DrawerMenuItem.Thrash -> {
+                                        navController.navigate(Screen.ThrashScreen.route)
+                                    }
                                 }
                             },
                             colors = NavigationDrawerItemDefaults.colors(
@@ -144,7 +146,9 @@ fun SideMenu(
                                     DrawerMenuItem.Settings -> {
                                         navController.navigate(Screen.SettingsScreen.route)
                                     }
-                                    DrawerMenuItem.Thrash -> TODO()
+                                    DrawerMenuItem.Thrash -> {
+                                        navController.navigate(Screen.ThrashScreen.route)
+                                    }
                                 }
                             },
                             colors = NavigationDrawerItemDefaults.colors(

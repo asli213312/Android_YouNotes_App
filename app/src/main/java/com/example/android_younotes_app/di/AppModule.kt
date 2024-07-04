@@ -8,6 +8,8 @@ import com.example.android_younotes_app.data.repository.NoteRepositoryImpl
 import com.example.android_younotes_app.domain.repository.NoteRepository
 import com.example.android_younotes_app.domain.use_cases.notes.AddNote
 import com.example.android_younotes_app.domain.use_cases.notes.BookmarkNote
+import com.example.android_younotes_app.domain.use_cases.notes.DeleteNote
+import com.example.android_younotes_app.domain.use_cases.notes.DeleteNoteInThrash
 import com.example.android_younotes_app.domain.use_cases.notes.GetNoteById
 import com.example.android_younotes_app.domain.use_cases.notes.GetNotes
 import com.example.android_younotes_app.domain.use_cases.notes.NoteUseCases
@@ -45,7 +47,9 @@ object AppModule {
             addNote = AddNote(repository),
             bookmarkNote = BookmarkNote(repository),
             getNotes = GetNotes(repository),
-            getNoteById = GetNoteById(repository)
+            getNoteById = GetNoteById(repository),
+            deleteNoteInThrash = DeleteNoteInThrash(repository),
+            deleteNote = DeleteNote(repository)
         )
     }
 }

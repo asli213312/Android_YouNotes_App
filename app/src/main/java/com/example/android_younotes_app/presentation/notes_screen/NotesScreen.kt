@@ -1,7 +1,9 @@
 package com.example.android_younotes_app.presentation.notes_screen
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -37,6 +39,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,22 +63,29 @@ import androidx.navigation.NavController
 import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
+import com.example.android_younotes_app.domain.repository.SelectableNoteRepository
 import com.example.android_younotes_app.domain.utils.CheckPermissions
 import com.example.android_younotes_app.presentation._global_components_.NotesTable
 import com.example.android_younotes_app.presentation._global_components_.SideMenu
 import com.example.android_younotes_app.presentation._global_components_.ThemeSearchBar
+import com.example.android_younotes_app.presentation.add_note.AddNoteEvent
 import com.example.android_younotes_app.presentation.search_screen.SearchViewModel
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
+import com.example.android_younotes_app.presentation.add_note.UiEvent
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAbstract
 import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuDeleteNote
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.ThemeGradient
 import com.example.android_younotes_app.presentation.utils.Screen
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesScreen(
+    context: Context,
     activity: Activity,
     navController: NavController,
     viewModel: NotesViewModel = hiltViewModel(),
@@ -94,6 +104,11 @@ fun NotesScreen(
     val canLoadMedia = remember {
         mutableStateOf(state.canLoadMedia)
     }
+
+    val contextOptions = listOf(
+        ContextMenuAddNote.DeleteInThrash(null),
+        ContextMenuAddNote.Duplicate(null)
+    )
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -114,6 +129,21 @@ fun NotesScreen(
         SideEffect {
             permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
             permissionLauncher.launch(android.Manifest.permission.MANAGE_DOCUMENTS)
+        }
+    }
+
+    LaunchedEffect(key1 = true) {
+        addNoteViewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG)
+                        .show()
+                }
+
+                else -> {
+
+                }
+            }
         }
     }
 
@@ -140,18 +170,34 @@ fun NotesScreen(
             )
 
             Spacer(modifier = Modifier.height(60.dp))
-            NotesTable(
-                onClickNote = { note ->
-                    navController.navigate(
-                        Screen.AddNoteScreen.route + "?noteId=${note.id}"
-                    )
-                },
-                canLoadMedia = canLoadMedia.value,
-                notes = state.notes,
-                addNoteViewModel = addNoteViewModel
-            )
-
-            if (state.notes.isEmpty()) {
+            if (state.notes.isNotEmpty() and state.notes.any { note ->
+                    note.isDeleted == null || note.isDeleted == false
+                }) {
+                NotesTable(
+                    onClickNote = { note ->
+                        navController.navigate(
+                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
+                        )
+                    },
+                    canLoadMedia = canLoadMedia.value,
+                    notes = state.notes.filter { note ->
+                        note.isDeleted == null || note.isDeleted == false
+                    },
+                    addNoteViewModel = addNoteViewModel,
+                    contextOptions = contextOptions,
+                    onOption = { option ->
+                        when (option) {
+                            is ContextMenuAddNote.DeleteInThrash -> {
+                                addNoteViewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(option.note))
+                            }
+                            is ContextMenuAddNote.Duplicate -> {
+                                addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate(option.note))
+                            }
+                        }
+                    }
+                )
+            }
+            else {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,
@@ -201,6 +247,8 @@ fun NotesScreen(
 fun NotesGrid(
     notes: List<Note>,
     canLoadMedia: Boolean,
+    options: List<ContextMenuAbstract>,
+    onOption: (ContextMenuAbstract) -> Unit,
     onClick: (Note) -> Unit,
     addNoteViewModel: AddNoteViewModel
 ) {
@@ -222,7 +270,6 @@ fun NotesGrid(
                 onClick = { onClick(note) },
                 onLongPress = { coordinates ->
                     contextMenuState = true
-                    //selectedNotePos = coordinates
                     selectedNote = note
 
                     Log.d("NotesScreen", "ContextMenuState: $contextMenuState")
@@ -233,16 +280,17 @@ fun NotesGrid(
         }
     }
 
-    LongTapContextMenu(state = contextMenuState,
+    LongTapContextMenu(
+        state = contextMenuState,
         selectedNotePos = selectedNotePos,
-        onOptionSelected = { optionIndex ->
-            when (optionIndex) {
-                0 -> addNoteViewModel.onContextOption(ContextMenuAddNote.Delete)
-                1 -> addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate)
-            }
+        onOptionSelected = { option ->
+            onOption(option)
             contextMenuState = false
         },
-        onDismiss = { contextMenuState = false })
+        onDismiss = { contextMenuState = false },
+        options = options,
+        selectedNote = selectedNote
+    )
 }
 
 @Composable
@@ -265,14 +313,12 @@ fun SectionTitle(title: String) {
 private fun LongTapContextMenu(
     state: Boolean,
     selectedNotePos: DpOffset,
-    onOptionSelected: (Int) -> Unit,
+    options: List<ContextMenuAbstract>,
+    selectedNote: Note?,
+    onOptionSelected: (ContextMenuAbstract) -> Unit,
     onDismiss: () -> Unit
 ) {
     val selectedNotePosState by remember { mutableStateOf(selectedNotePos) }
-
-    val contextItems = listOf(
-        ContextMenuAddNote.Delete, ContextMenuAddNote.Duplicate
-    )
 
     AnimatedVisibility(
         visible = state,
@@ -286,11 +332,15 @@ private fun LongTapContextMenu(
                 x = selectedNotePosState.x + 30.dp, y = selectedNotePosState.y
             ), modifier = Modifier.background(Background)
         ) {
-            contextItems.forEachIndexed { index, selectedOption ->
+            options.forEachIndexed { index, selectedOption ->
                 DropdownMenuItem(onClick = {
-                    onOptionSelected(index)
+                    if (selectedOption is SelectableNoteRepository) {
+                        val selectableOption: SelectableNoteRepository = selectedOption
+                        selectableOption.invoke(selectedNote!!)
+                    }
+                    onOptionSelected(selectedOption)
                 }, text = {
-                    val option = contextItems[index]
+                    val option = options[index]
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -305,7 +355,7 @@ private fun LongTapContextMenu(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = contextItems[index].title, color = Color.White
+                            text = options[index].title, color = Color.White
                         )
                     }
                 })

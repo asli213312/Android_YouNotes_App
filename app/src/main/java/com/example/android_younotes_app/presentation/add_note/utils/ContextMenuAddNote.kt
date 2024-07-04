@@ -1,24 +1,36 @@
 package com.example.android_younotes_app.presentation.add_note.utils
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Adjust
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.android_younotes_app.R
+import com.example.android_younotes_app.domain.models.Note
+import com.example.android_younotes_app.domain.repository.SelectableNoteRepository
 
 sealed class ContextMenuAddNote(
-    val title: String,
-    val icon: Int,
-    val color: Color = Color.White
-) {
-    data object Delete : ContextMenuAddNote(
-        "Delete", R.drawable.vector_thrash
-    )
+    title: String,
+    icon: Int,
+    color: Color = Color.White
+) : ContextMenuAbstract(title, icon, color) {
+
+    data class DeleteInThrash(var note: Note?) : ContextMenuAddNote(
+        title = "Delete",
+        icon = R.drawable.vector_thrash
+    ), SelectableNoteRepository {
+        override fun invoke(selectedNote: Note) {
+            note = selectedNote
+        }
+    }
+
     data object SelectColor : ContextMenuAddNote(
-        "Select color", R.drawable.vector_select_color
+        title = "Select color",
+        icon = R.drawable.vector_select_color
     )
-    data object Duplicate : ContextMenuAddNote(
-        "Duplicate", R.drawable.vector_duplicate
-    )
+
+    data class Duplicate(var note: Note?) : ContextMenuAddNote(
+        title = "Duplicate",
+        icon = R.drawable.vector_duplicate
+    ), SelectableNoteRepository {
+        override fun invoke(selectedNote: Note) {
+            note = selectedNote
+        }
+    }
 }

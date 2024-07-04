@@ -22,6 +22,9 @@ interface NoteDao {
     @Query("UPDATE Note SET isPinned = :isPinned WHERE id = :noteId")
     suspend fun bookmarkNote(noteId: Int, isPinned: Boolean)
 
+    @Query("UPDATE Note SET isDeleted = :isDeleted WHERE id = :noteId")
+    suspend fun deleteNoteInThrash(noteId: Int, isDeleted: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNote(note: Note)
 

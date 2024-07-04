@@ -19,6 +19,7 @@ import com.example.android_younotes_app.presentation.add_note.AddNoteScreen
 import com.example.android_younotes_app.presentation.notes_screen.NotesScreen
 import com.example.android_younotes_app.presentation.search_screen.SearchScreen
 import com.example.android_younotes_app.presentation.settings.SettingScreen
+import com.example.android_younotes_app.presentation.thrash_screen.ThrashScreen
 import com.example.android_younotes_app.presentation.ui.theme.Android_YouNotesTheme
 import com.example.android_younotes_app.presentation.utils.Screen
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,8 +43,9 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable(Screen.NotesScreen.route) {
                         NotesScreen(
-                            this@MainActivity,
-                            navController
+                            context = context,
+                            activity = this@MainActivity,
+                            navController = navController
                         )
                     }
                     composable(
@@ -73,6 +75,12 @@ class MainActivity : ComponentActivity() {
                         SearchScreen(
                             maxLength = 24,
                             navController = navController,
+                        )
+                    }
+                    composable(Screen.ThrashScreen.route) {
+                        ThrashScreen(
+                            context = LocalContext.current,
+                            navController = navController
                         )
                     }
                 }

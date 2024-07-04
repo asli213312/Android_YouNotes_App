@@ -105,39 +105,89 @@ class AddNoteViewModel @Inject constructor(
 
     fun onContextOption(option: ContextMenuAddNote) {
         when(option) {
-            is ContextMenuAddNote.Delete -> {
+            is ContextMenuAddNote.DeleteInThrash -> {
+                if (option.note != null) {
 
+                    viewModelScope.launch {
+                        noteUseCases.deleteNoteInThrash(option.note!!.id!!, true)
+
+                        _eventFlow.emit(UiEvent.ShowSnackbar(
+                            message = "Note will be in thrash for 7 days"
+                        ))
+                    }
+                }
+                else {
+                    _currentNoteId?.let { id ->
+                        viewModelScope.launch {
+                            noteUseCases.deleteNoteInThrash(id, true)
+
+                            _eventFlow.emit(UiEvent.ShowSnackbar(
+                                message = "Note will be in thrash for 7 days"
+                            ))
+                        }
+                    }
+                }
             }
             is ContextMenuAddNote.SelectColor -> TODO()
             is ContextMenuAddNote.Duplicate -> {
-                _currentNoteId?.let {
+                if (option.note == null) {
+                    _currentNoteId?.let {
+                        viewModelScope.launch {
+                            try {
+                                noteUseCases.addNote(
+                                    Note(
+                                        title = _titleState.value.query,
+                                        content = _contentState.value.query,
+                                        lastChanged = System.currentTimeMillis(),
+                                        timeCreated = System.currentTimeMillis(),
+                                        isPinned = _noteIsBookmarked,
+                                        tag = _additionalState.value.noteTag,
+                                        backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
+                                            Uri.parse(_additionalState.value.backgroundImagePath)
+                                        },
+                                        backgroundGradient = additionalState.value.backgroundGradient?.index,
+                                        previewImagePath = _additionalState.value.previewImagePath?.let {
+                                            Uri.parse(_additionalState.value.previewImagePath)
+                                        },
+                                        id = _currentNoteId!!.plus(1)
+                                    )
+                                )
+                                _eventFlow.emit(UiEvent.SaveNote)
+                            } catch (e: InvalidNoteException) {
+                                _eventFlow.emit(
+                                    UiEvent.ShowSnackbar(
+                                        message = e.message ?: "Couldn't save note."
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } else {
                     viewModelScope.launch {
-                        try {
-                            noteUseCases.addNote(
-                                Note(
-                                    title = _titleState.value.query,
-                                    content = _contentState.value.query,
-                                    lastChanged = System.currentTimeMillis(),
-                                    timeCreated = System.currentTimeMillis(),
-                                    isPinned = _noteIsBookmarked,
-                                    tag = _additionalState.value.noteTag,
-                                    backgroundImagePath = _additionalState.value.backgroundImagePath?.let {
-                                        Uri.parse(_additionalState.value.backgroundImagePath)
-                                    },
-                                    backgroundGradient = additionalState.value.backgroundGradient?.index,
-                                    previewImagePath = _additionalState.value.previewImagePath?.let {
-                                        Uri.parse(_additionalState.value.previewImagePath)
-                                    },
-                                    id = _currentNoteId!!.plus(1)
+                        option.note?.let {
+                            try {
+                                noteUseCases.addNote(
+                                    Note(
+                                        title = option.note!!.title,
+                                        content = option.note!!.content,
+                                        lastChanged = option.note!!.lastChanged,
+                                        timeCreated = option.note!!.timeCreated,
+                                        isPinned = option.note!!.isPinned,
+                                        tag = option.note!!.tag,
+                                        backgroundImagePath = option.note!!.backgroundImagePath,
+                                        backgroundGradient = option.note!!.backgroundGradient,
+                                        previewImagePath = option.note!!.previewImagePath,
+                                        id = option.note!!.id!!.plus(1)
+                                    )
                                 )
-                            )
-                            _eventFlow.emit(UiEvent.SaveNote)
-                        } catch (e: InvalidNoteException) {
-                            _eventFlow.emit(
-                                UiEvent.ShowSnackbar(
-                                    message = e.message ?: "Couldn't save note."
+                                _eventFlow.emit(UiEvent.SaveNote)
+                            } catch (e: InvalidNoteException) {
+                                _eventFlow.emit(
+                                    UiEvent.ShowSnackbar(
+                                        message = e.message ?: "Couldn't save note."
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }

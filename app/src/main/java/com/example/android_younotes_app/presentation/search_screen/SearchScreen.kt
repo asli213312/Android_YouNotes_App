@@ -35,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.android_younotes_app.presentation._global_components_.NotesTable
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
 import com.example.android_younotes_app.presentation.notes_screen.NotesViewModel
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.Primary
@@ -160,7 +161,17 @@ fun SearchScreen(
                 //canLoadMedia = notesViewModel.state.value.canLoadMedia,
                 canLoadMedia = true,
                 notes = viewModel.state.value.foundNotes,
-                addNoteViewModel = addNoteViewModel
+                addNoteViewModel = addNoteViewModel,
+                onOption = { option ->
+                    when(option) {
+                        is ContextMenuAddNote.DeleteInThrash -> {
+                            addNoteViewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(option.note))
+                        }
+                        is ContextMenuAddNote.Duplicate -> {
+                            addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate(option.note))
+                        }
+                    }
+                }
             )
         }
     }

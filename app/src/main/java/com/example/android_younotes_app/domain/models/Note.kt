@@ -15,6 +15,7 @@ data class Note(
     val lastChanged: Long,
     val timeCreated: Long,
     val isPinned: Boolean? = null,
+    val isDeleted: Boolean? = null,
     val tag: String? = null,
     val backgroundImagePath: Uri? = null,
     val backgroundGradient: Int? = null,

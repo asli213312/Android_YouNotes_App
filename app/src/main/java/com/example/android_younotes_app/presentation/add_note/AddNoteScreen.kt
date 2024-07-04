@@ -3,6 +3,7 @@ package com.example.android_younotes_app.presentation.add_note
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -134,9 +135,9 @@ fun AddNoteScreen(
     )
 
     val menuOptions = listOf(
-        ContextMenuAddNote.Delete,
+        ContextMenuAddNote.DeleteInThrash(null),
         ContextMenuAddNote.SelectColor,
-        ContextMenuAddNote.Duplicate
+        ContextMenuAddNote.Duplicate(null)
     )
 
     var selectColorDialogIsOpen by remember {
@@ -164,7 +165,7 @@ fun AddNoteScreen(
                 }
 
                 is UiEvent.ShowSnackbar -> {
-                    Toast.makeText(context, "Something got wrong... try later", Toast.LENGTH_LONG)
+                    Toast.makeText(context, event.message, Toast.LENGTH_LONG)
                         .show()
                 }
 
@@ -511,9 +512,12 @@ fun AddNoteScreen(
                             DropdownMenuItem(
                                 onClick = {
                                     when (index) {
-                                        0 -> viewModel.onContextOption(ContextMenuAddNote.Delete)
-                                        1 -> selectColorDialogIsOpen = true
-                                        2 -> viewModel.onContextOption(ContextMenuAddNote.Duplicate)
+                                        0 -> viewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(null))
+                                        1 -> {
+                                            selectColorDialogIsOpen = true
+                                            Log.d("AddNoteScreen", "SelectColorDialog state = $selectColorDialogIsOpen")
+                                        }
+                                        2 -> viewModel.onContextOption(ContextMenuAddNote.Duplicate(null))
                                     }
                                     isContextMenuExpanded.value = false
                                 },
@@ -663,58 +667,57 @@ fun AddNoteScreen(
                                 }
                             }
                         }
-
-                        if (!selectColorDialogIsOpen) return@Column
-                        AlertDialog(
-                            onDismissRequest = { selectColorDialogIsOpen = false },
-                            modifier = Modifier.height(200.dp),
+                    }
+                    if (!selectColorDialogIsOpen) return@Column
+                    AlertDialog(
+                        onDismissRequest = { selectColorDialogIsOpen = false },
+                        modifier = Modifier.height(200.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = Primary.copy(1f),
+                                    shape = RoundedCornerShape(32.dp)
+                                )
+                                .border(1.dp, Stroke, RoundedCornerShape(32.dp)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        color = Primary.copy(1f),
-                                        shape = RoundedCornerShape(32.dp)
-                                    )
-                                    .border(1.dp, Stroke, RoundedCornerShape(32.dp)),
-                                contentAlignment = Alignment.Center
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        text = "Select color",
-                                        style = TextStyle(
-                                            fontFamily = medium,
-                                            fontWeight = FontWeight.Normal,
-                                            fontSize = 18.sp,
-                                            lineHeight = 24.sp,
-                                            letterSpacing = 0.5.sp,
-                                            color = Color.White
-                                        )
+                                Text(
+                                    text = "Select color",
+                                    style = TextStyle(
+                                        fontFamily = medium,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 18.sp,
+                                        lineHeight = 24.sp,
+                                        letterSpacing = 0.5.sp,
+                                        color = Color.White
                                     )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        defaultNoteGradients.forEach { gradient ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .background(
-                                                        brush = gradient.brush,
-                                                        shape = CircleShape
-                                                    )
-                                                    .size(60.dp)
-                                                    .clickable {
-                                                        additionalState.backgroundGradient =
-                                                            gradient
-                                                        selectColorDialogIsOpen = false
-                                                    }
-                                            )
-                                            Spacer(modifier = Modifier.width(16.dp))
-                                        }
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    defaultNoteGradients.forEach { gradient ->
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    brush = gradient.brush,
+                                                    shape = CircleShape
+                                                )
+                                                .size(60.dp)
+                                                .clickable {
+                                                    additionalState.backgroundGradient =
+                                                        gradient
+                                                    selectColorDialogIsOpen = false
+                                                }
+                                        )
+                                        Spacer(modifier = Modifier.width(16.dp))
                                     }
                                 }
                             }

@@ -5,4 +5,5 @@ sealed class Screen(val route: String) {
     data object AddNoteScreen: Screen("add_note_screen")
     data object SettingsScreen: Screen("settings_screen")
     data object SearchScreen: Screen("search_screen")
+    data object ThrashScreen: Screen("thrash_screen")
 }

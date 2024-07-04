@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
+import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAbstract
 import com.example.android_younotes_app.presentation.notes_screen.NotesGrid
 import com.example.android_younotes_app.presentation.notes_screen.SectionTitle
 import com.example.android_younotes_app.presentation.utils.Screen
@@ -18,7 +19,9 @@ import com.example.android_younotes_app.presentation.utils.Screen
 fun NotesTable(
     onClickNote: (Note) -> Unit,
     canLoadMedia: Boolean,
+    onOption: (ContextMenuAbstract) -> Unit,
     notes: List<Note>,
+    contextOptions: List<ContextMenuAbstract> = emptyList<ContextMenuAbstract>(),
     addNoteViewModel: AddNoteViewModel
 ) {
     Column(
@@ -33,7 +36,9 @@ fun NotesTable(
                 notes = notes.filter { note -> note.isPinned == true },
                 canLoadMedia = canLoadMedia,
                 onClick = { note -> onClickNote(note) },
-                addNoteViewModel = addNoteViewModel
+                addNoteViewModel = addNoteViewModel,
+                options = contextOptions,
+                onOption = onOption
             )
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -42,7 +47,9 @@ fun NotesTable(
                 notes = notes.filter { note -> note.isPinned == false },
                 canLoadMedia = canLoadMedia,
                 onClick = { note -> onClickNote(note) },
-                addNoteViewModel = addNoteViewModel
+                addNoteViewModel = addNoteViewModel,
+                options = contextOptions,
+                onOption = onOption
             )
         }
     }
