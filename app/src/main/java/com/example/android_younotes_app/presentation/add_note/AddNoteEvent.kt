@@ -8,6 +8,7 @@ sealed class AddNoteEvent{
     data class ChangeTitleFocus(val focusState: FocusState): AddNoteEvent()
     data class EnteredContent(val value: String): AddNoteEvent()
     data class ChangeContentFocus(val focusState: FocusState): AddNoteEvent()
+    data class DeleteNote(val note: Note): AddNoteEvent()
     data object SaveNote: AddNoteEvent()
     data object AddBackground: AddNoteEvent()
     data object AddPreview: AddNoteEvent()

@@ -311,6 +311,17 @@ class AddNoteViewModel @Inject constructor(
                 }
             }
 
+            is AddNoteEvent.DeleteNote -> {
+                event.note.let {
+                    viewModelScope.launch {
+                        noteUseCases.deleteNote(it)
+                        _eventFlow.emit(UiEvent.ShowSnackbar(
+                            "Note was deleted forever"
+                        ))
+                    }
+                }
+            }
+
             is AddNoteEvent.AddBackground -> {
                 viewModelScope.launch {
                     selectedBackground.value = true

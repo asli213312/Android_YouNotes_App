@@ -4,6 +4,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.use_cases.notes.NoteUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -23,6 +24,10 @@ class NotesViewModel @Inject constructor(
 
     init {
         getNotes()
+    }
+
+    fun selectNote(note: Note) {
+        _state.value = state.value.copy(selectedNote = note)
     }
 
     private fun getNotes() {

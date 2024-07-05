@@ -114,9 +114,9 @@ fun AddNoteScreen(
 
     val spacerPreview by animateDpAsState(
         targetValue =
-        if (previewImg == null)
-            80.dp
-        else 70.dp,
+            if (previewImg == null)
+                80.dp
+            else 70.dp,
         label = ""
     )
 

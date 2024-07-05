@@ -4,11 +4,13 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FabPosition
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -100,24 +103,41 @@ fun ThrashScreen(
                     note.isDeleted == true
                 })
 
-                NotesTable(
-                    onClickNote = {  note ->
-                        navController.navigate(
-                            Screen.AddNoteScreen.route + "?noteId=${note.id}"
-                        )
-                    },
-                    canLoadMedia = true,
-                    notes = viewModel.state.value.deletedNotes,
-                    addNoteViewModel = addNoteViewModel,
-                    contextOptions = contextOptions,
-                    onOption = { option ->
-                        when(option) {
-                            is ContextActionDeleteNote.Restore -> {
-                                viewModel.onContextOption(ContextActionDeleteNote.Restore(option.note))
+                Column(Modifier.fillMaxSize()) {
+                    Text(
+                        text = "Your notes here will be automatically deleted in 7 days.",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            lineHeight = 24.sp,
+                            letterSpacing = 0.5.sp,
+                            color = Color.White.copy(0.7f)
+                        ),
+                        modifier = Modifier
+                            .padding(top = 130.dp, bottom = 20.dp)
+                            .padding(horizontal = 60.dp),
+                        textAlign = TextAlign.Center
+                    )
+
+                    NotesTable(
+                        onClickNote = {  note ->
+                            navController.navigate(
+                                Screen.AddNoteScreen.route + "?noteId=${note.id}"
+                            )
+                        },
+                        canLoadMedia = true,
+                        notes = viewModel.state.value.deletedNotes,
+                        addNoteViewModel = addNoteViewModel,
+                        contextOptions = contextOptions,
+                        onOption = { option ->
+                            when(option) {
+                                is ContextActionDeleteNote.Restore -> {
+                                    viewModel.onContextOption(ContextActionDeleteNote.Restore(option.note))
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
             else {
                 Column(

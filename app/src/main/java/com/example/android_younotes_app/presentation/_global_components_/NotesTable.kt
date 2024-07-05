@@ -28,7 +28,6 @@ fun NotesTable(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(70.dp))
         if (canLoadMedia && notes.isNotEmpty()) {
             SectionTitle(title = "Pinned")
             NotesGrid(
