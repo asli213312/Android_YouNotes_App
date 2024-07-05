@@ -69,6 +69,7 @@ import com.example.android_younotes.presentation.ui.theme.light
 import com.example.android_younotes.presentation.ui.theme.medium
 import com.example.android_younotes_app.core.UserPreferencesViewModel
 import com.example.android_younotes_app.domain.models.NoteDefaultGradients
+import com.example.android_younotes_app.domain.utils.DateUtils
 import com.example.android_younotes_app.domain.utils.ImagesUtils
 import com.example.android_younotes_app.presentation._global_components_.GradientButton
 import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAddNote
@@ -425,7 +426,9 @@ fun AddNoteScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Last changed : Feb 18, 2023 at 2:00AM",
+                text = if (additionalState.lastChanged != null) {
+                    "Last changed : ${DateUtils.formatDate(additionalState.lastChanged!!, "MMM d, yyyy 'at' h:mm a")}"
+                } else { "" },
                 style = TextStyle(
                     fontFamily = light,
                     fontWeight = FontWeight.Normal,
@@ -486,7 +489,9 @@ fun AddNoteScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = "Created: Mar 1, 2024",
+                        text = if (additionalState.timeCreated != null) {
+                                "Created: ${DateUtils.formatDate(additionalState.timeCreated!!)}"
+                            } else { "" },
                         style = TextStyle(
                             fontFamily = light,
                             fontWeight = FontWeight.Normal,
@@ -496,7 +501,7 @@ fun AddNoteScreen(
                             color = Color.White.copy(0.8f)
                         ),
                     )
-                    Spacer(modifier = Modifier.width(32.dp))
+                    Spacer(modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = { isContextMenuExpanded.value = true }
                     ) {

@@ -59,9 +59,13 @@ import androidx.compose.ui.unit.sp
 import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.models.NoteDefaultGradients
+import com.example.android_younotes_app.domain.utils.DateUtils
 import com.example.android_younotes_app.presentation.ui.theme.BlackGradient
 import com.example.android_younotes_app.presentation.ui.theme.ClearGradient
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -240,7 +244,7 @@ fun NoteItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Jan 3, 2024",
+                            text = DateUtils.formatDate(note.lastChanged),
                             style = TextStyle(
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 12.sp,

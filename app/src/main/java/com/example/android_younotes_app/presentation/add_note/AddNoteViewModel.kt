@@ -249,13 +249,13 @@ class AddNoteViewModel @Inject constructor(
                 _contentState.value = contentState.value.copy(
                     query = event.value
                 )
-                _additionalState.value.copy(lastChanged = System.currentTimeMillis())
+                _additionalState.value = additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
             is AddNoteEvent.EnteredTitle -> {
                 _titleState.value = titleState.value.copy(
                     query = event.value
                 )
-                _additionalState.value.copy(lastChanged = System.currentTimeMillis())
+                _additionalState.value = additionalState.value.copy(lastChanged = System.currentTimeMillis())
             }
             is AddNoteEvent.BookmarkNote -> {
                 viewModelScope.launch {
