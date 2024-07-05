@@ -34,7 +34,7 @@ import com.example.android_younotes_app.presentation._global_components_.SideMen
 import com.example.android_younotes_app.presentation._global_components_.ThemeSearchBar
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
 import com.example.android_younotes_app.presentation.add_note.UiEvent
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuDeleteNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionDeleteNote
 import com.example.android_younotes_app.presentation.notes_screen.NotesViewModel
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.search_screen.SearchViewModel
@@ -55,7 +55,7 @@ fun ThrashScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     val contextOptions = listOf(
-        ContextMenuDeleteNote.Restore(null)
+        ContextActionDeleteNote.Restore(null)
     )
 
     LaunchedEffect(key1 = true) {
@@ -112,8 +112,8 @@ fun ThrashScreen(
                     contextOptions = contextOptions,
                     onOption = { option ->
                         when(option) {
-                            is ContextMenuDeleteNote.Restore -> {
-                                viewModel.onContextOption(ContextMenuDeleteNote.Restore(option.note))
+                            is ContextActionDeleteNote.Restore -> {
+                                viewModel.onContextOption(ContextActionDeleteNote.Restore(option.note))
                             }
                         }
                     }

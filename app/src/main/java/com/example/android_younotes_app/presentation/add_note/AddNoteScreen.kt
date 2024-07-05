@@ -71,7 +71,7 @@ import com.example.android_younotes_app.core.UserPreferencesViewModel
 import com.example.android_younotes_app.domain.models.NoteDefaultGradients
 import com.example.android_younotes_app.domain.utils.ImagesUtils
 import com.example.android_younotes_app.presentation._global_components_.GradientButton
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAddNote
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.BlackGradient
 import com.example.android_younotes_app.presentation.ui.theme.Primary
@@ -135,9 +135,10 @@ fun AddNoteScreen(
     )
 
     val menuOptions = listOf(
-        ContextMenuAddNote.DeleteInThrash(null),
-        ContextMenuAddNote.SelectColor,
-        ContextMenuAddNote.Duplicate(null)
+        ContextActionAddNote.DeleteInThrash(null),
+        ContextActionAddNote.SelectColor,
+        ContextActionAddNote.Duplicate(null),
+        ContextActionAddNote.Share(null)
     )
 
     var selectColorDialogIsOpen by remember {
@@ -175,6 +176,13 @@ fun AddNoteScreen(
 
                 is UiEvent.OpenGallery -> {
                     launcherForContent.launch("image/*")
+                }
+                is UiEvent.StartActivity -> {
+                    Log.d("AddNoteScreen", "Should be launch intent: ${event.intent}")
+                    event.intent.let {
+                        Log.d("AddNoteScreen", "Launched intent: ${event.intent}")
+                        context.startActivity(it)
+                    }
                 }
             }
         }
@@ -512,12 +520,10 @@ fun AddNoteScreen(
                             DropdownMenuItem(
                                 onClick = {
                                     when (index) {
-                                        0 -> viewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(null))
-                                        1 -> {
-                                            selectColorDialogIsOpen = true
-                                            Log.d("AddNoteScreen", "SelectColorDialog state = $selectColorDialogIsOpen")
-                                        }
-                                        2 -> viewModel.onContextOption(ContextMenuAddNote.Duplicate(null))
+                                        0 -> viewModel.onContextOption(ContextActionAddNote.DeleteInThrash(null))
+                                        1 -> { selectColorDialogIsOpen = true }
+                                        2 -> viewModel.onContextOption(ContextActionAddNote.Duplicate(null))
+                                        3 -> viewModel.onContextOption(ContextActionAddNote.Share(null))
                                     }
                                     isContextMenuExpanded.value = false
                                 },

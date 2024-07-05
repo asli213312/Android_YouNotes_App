@@ -5,13 +5,13 @@ import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.repository.SelectableNoteRepository
 
-sealed class ContextMenuDeleteNote(
+sealed class ContextActionDeleteNote(
     title: String,
     icon: Int,
     color: Color = Color.White
-) : ContextMenuAbstract(title, icon, color) {
+) : ContextActionAbstract(title, icon, color) {
 
-    data class Restore(var note: Note?): ContextMenuDeleteNote(
+    data class Restore(var note: Note?): ContextActionDeleteNote(
         title = "Restore",
         icon = R.drawable.vector_restore
     ), SelectableNoteRepository {

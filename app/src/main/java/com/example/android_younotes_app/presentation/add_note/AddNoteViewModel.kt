@@ -1,7 +1,9 @@
 package com.example.android_younotes_app.presentation.add_note
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -12,7 +14,7 @@ import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.models.NoteDefaultGradients
 import com.example.android_younotes_app.domain.use_cases.notes.NoteUseCases
 import com.example.android_younotes_app.domain.utils.ImagesUtils
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAddNote
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -103,9 +105,9 @@ class AddNoteViewModel @Inject constructor(
         }
     }
 
-    fun onContextOption(option: ContextMenuAddNote) {
+    fun onContextOption(option: ContextActionAddNote) {
         when(option) {
-            is ContextMenuAddNote.DeleteInThrash -> {
+            is ContextActionAddNote.DeleteInThrash -> {
                 if (option.note != null) {
 
                     viewModelScope.launch {
@@ -128,8 +130,40 @@ class AddNoteViewModel @Inject constructor(
                     }
                 }
             }
-            is ContextMenuAddNote.SelectColor -> TODO()
-            is ContextMenuAddNote.Duplicate -> {
+            is ContextActionAddNote.Share -> {
+                fun makeShareContent(content: String) {
+                    content.let {
+                        viewModelScope.launch {
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, content)
+                                type = "text/plain"
+                            }
+                            val chooser = Intent.createChooser(shareIntent, "Share note via")
+                            _eventFlow.emit(UiEvent.StartActivity(chooser))
+                        }
+                    }
+                }
+
+                if (option.note == null) {
+                    _currentNoteId?.let {
+                        viewModelScope.launch {
+                            val currentNote = noteUseCases.getNoteById(_currentNoteId!!)
+                            makeShareContent(currentNote?.content ?: "")
+                        }
+                    }
+                }
+                else {
+                    Log.d("AddNoteViewModel", "Selected note to share: ${option.note}")
+                    option.note?.let {
+                        viewModelScope.launch {
+                            makeShareContent(option.note!!.content)
+                        }
+                    }
+                }
+            }
+            is ContextActionAddNote.SelectColor -> TODO()
+            is ContextActionAddNote.Duplicate -> {
                 if (option.note == null) {
                     _currentNoteId?.let {
                         viewModelScope.launch {
@@ -191,6 +225,10 @@ class AddNoteViewModel @Inject constructor(
                         }
                     }
                 }
+            }
+
+            else -> {
+
             }
         }
     }
@@ -285,6 +323,10 @@ class AddNoteViewModel @Inject constructor(
                     _eventFlow.emit(UiEvent.OpenGallery)
                 }
             }
+
+            else -> {
+
+            }
         }
     }
 }
@@ -293,5 +335,6 @@ sealed class UiEvent {
     data object OpenGallery : UiEvent()
     data object SaveNote : UiEvent()
     data object BookmarkNote : UiEvent()
+    data class StartActivity(val intent: Intent) : UiEvent()
     data class ShowSnackbar(val message: String) : UiEvent()
 }

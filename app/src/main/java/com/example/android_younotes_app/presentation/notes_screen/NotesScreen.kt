@@ -68,13 +68,11 @@ import com.example.android_younotes_app.domain.utils.CheckPermissions
 import com.example.android_younotes_app.presentation._global_components_.NotesTable
 import com.example.android_younotes_app.presentation._global_components_.SideMenu
 import com.example.android_younotes_app.presentation._global_components_.ThemeSearchBar
-import com.example.android_younotes_app.presentation.add_note.AddNoteEvent
 import com.example.android_younotes_app.presentation.search_screen.SearchViewModel
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
 import com.example.android_younotes_app.presentation.add_note.UiEvent
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAbstract
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuDeleteNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAbstract
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAddNote
 import com.example.android_younotes_app.presentation.notes_screen.components.GradientFloatingActionButton
 import com.example.android_younotes_app.presentation.notes_screen.components.NoteItem
 import com.example.android_younotes_app.presentation.ui.theme.Background
@@ -106,8 +104,9 @@ fun NotesScreen(
     }
 
     val contextOptions = listOf(
-        ContextMenuAddNote.DeleteInThrash(null),
-        ContextMenuAddNote.Duplicate(null)
+        ContextActionAddNote.DeleteInThrash(null),
+        ContextActionAddNote.Duplicate(null),
+        ContextActionAddNote.Share(null)
     )
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -138,6 +137,13 @@ fun NotesScreen(
                 is UiEvent.ShowSnackbar -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_LONG)
                         .show()
+                }
+                is UiEvent.StartActivity -> {
+                    Log.d("NotesScreen", "Should be launch intent: ${event.intent}")
+                    event.intent.let {
+                        Log.d("NotesScreen", "Launched intent: ${event.intent}")
+                        context.startActivity(it)
+                    }
                 }
 
                 else -> {
@@ -187,11 +193,14 @@ fun NotesScreen(
                     contextOptions = contextOptions,
                     onOption = { option ->
                         when (option) {
-                            is ContextMenuAddNote.DeleteInThrash -> {
-                                addNoteViewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(option.note))
+                            is ContextActionAddNote.DeleteInThrash -> {
+                                addNoteViewModel.onContextOption(ContextActionAddNote.DeleteInThrash(option.note))
                             }
-                            is ContextMenuAddNote.Duplicate -> {
-                                addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate(option.note))
+                            is ContextActionAddNote.Duplicate -> {
+                                addNoteViewModel.onContextOption(ContextActionAddNote.Duplicate(option.note))
+                            }
+                            is ContextActionAddNote.Share -> {
+                                addNoteViewModel.onContextOption(ContextActionAddNote.Share(option.note))
                             }
                         }
                     }
@@ -247,8 +256,8 @@ fun NotesScreen(
 fun NotesGrid(
     notes: List<Note>,
     canLoadMedia: Boolean,
-    options: List<ContextMenuAbstract>,
-    onOption: (ContextMenuAbstract) -> Unit,
+    options: List<ContextActionAbstract>,
+    onOption: (ContextActionAbstract) -> Unit,
     onClick: (Note) -> Unit,
     addNoteViewModel: AddNoteViewModel
 ) {
@@ -313,9 +322,9 @@ fun SectionTitle(title: String) {
 private fun LongTapContextMenu(
     state: Boolean,
     selectedNotePos: DpOffset,
-    options: List<ContextMenuAbstract>,
+    options: List<ContextActionAbstract>,
     selectedNote: Note?,
-    onOptionSelected: (ContextMenuAbstract) -> Unit,
+    onOptionSelected: (ContextActionAbstract) -> Unit,
     onDismiss: () -> Unit
 ) {
     val selectedNotePosState by remember { mutableStateOf(selectedNotePos) }

@@ -1,8 +1,6 @@
 package com.example.android_younotes_app.presentation.search_screen
 
-import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +16,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -35,7 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.android_younotes_app.presentation._global_components_.NotesTable
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAddNote
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAddNote
 import com.example.android_younotes_app.presentation.notes_screen.NotesViewModel
 import com.example.android_younotes_app.presentation.ui.theme.Background
 import com.example.android_younotes_app.presentation.ui.theme.Primary
@@ -164,11 +161,11 @@ fun SearchScreen(
                 addNoteViewModel = addNoteViewModel,
                 onOption = { option ->
                     when(option) {
-                        is ContextMenuAddNote.DeleteInThrash -> {
-                            addNoteViewModel.onContextOption(ContextMenuAddNote.DeleteInThrash(option.note))
+                        is ContextActionAddNote.DeleteInThrash -> {
+                            addNoteViewModel.onContextOption(ContextActionAddNote.DeleteInThrash(option.note))
                         }
-                        is ContextMenuAddNote.Duplicate -> {
-                            addNoteViewModel.onContextOption(ContextMenuAddNote.Duplicate(option.note))
+                        is ContextActionAddNote.Duplicate -> {
+                            addNoteViewModel.onContextOption(ContextActionAddNote.Duplicate(option.note))
                         }
                     }
                 }

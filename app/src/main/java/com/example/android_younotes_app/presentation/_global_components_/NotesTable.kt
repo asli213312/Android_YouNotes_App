@@ -10,18 +10,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.presentation.add_note.AddNoteViewModel
-import com.example.android_younotes_app.presentation.add_note.utils.ContextMenuAbstract
+import com.example.android_younotes_app.presentation.add_note.utils.ContextActionAbstract
 import com.example.android_younotes_app.presentation.notes_screen.NotesGrid
 import com.example.android_younotes_app.presentation.notes_screen.SectionTitle
-import com.example.android_younotes_app.presentation.utils.Screen
 
 @Composable
 fun NotesTable(
     onClickNote: (Note) -> Unit,
     canLoadMedia: Boolean,
-    onOption: (ContextMenuAbstract) -> Unit,
+    onOption: (ContextActionAbstract) -> Unit,
     notes: List<Note>,
-    contextOptions: List<ContextMenuAbstract> = emptyList<ContextMenuAbstract>(),
+    contextOptions: List<ContextActionAbstract> = emptyList<ContextActionAbstract>(),
     addNoteViewModel: AddNoteViewModel
 ) {
     Column(

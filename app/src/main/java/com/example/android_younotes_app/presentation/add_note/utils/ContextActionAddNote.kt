@@ -5,13 +5,13 @@ import com.example.android_younotes_app.R
 import com.example.android_younotes_app.domain.models.Note
 import com.example.android_younotes_app.domain.repository.SelectableNoteRepository
 
-sealed class ContextMenuAddNote(
+sealed class ContextActionAddNote(
     title: String,
     icon: Int,
     color: Color = Color.White
-) : ContextMenuAbstract(title, icon, color) {
+) : ContextActionAbstract(title, icon, color) {
 
-    data class DeleteInThrash(var note: Note?) : ContextMenuAddNote(
+    data class DeleteInThrash(var note: Note?) : ContextActionAddNote(
         title = "Delete",
         icon = R.drawable.vector_thrash
     ), SelectableNoteRepository {
@@ -20,12 +20,21 @@ sealed class ContextMenuAddNote(
         }
     }
 
-    data object SelectColor : ContextMenuAddNote(
+    data class Share(var note: Note?) : ContextActionAddNote(
+        title = "Share",
+        icon = R.drawable.vector_share
+    ), SelectableNoteRepository {
+        override fun invoke(selectedNote: Note) {
+            note = selectedNote
+        }
+    }
+
+    data object SelectColor : ContextActionAddNote(
         title = "Select color",
         icon = R.drawable.vector_select_color
     )
 
-    data class Duplicate(var note: Note?) : ContextMenuAddNote(
+    data class Duplicate(var note: Note?) : ContextActionAddNote(
         title = "Duplicate",
         icon = R.drawable.vector_duplicate
     ), SelectableNoteRepository {
